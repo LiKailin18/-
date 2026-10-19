@@ -1,0 +1,39 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["alembic/versions"]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+    # FastAPI 把 Depends()/Query()/File() 写在函数默认值是官方推荐用法
+    "B008",
+    # 本项目注释与文案统一使用中文，全角标点（：，（））是正常写法而非笔误
+    "RUF001",
+    "RUF002",
+    "RUF003",
+    # Pydantic 的泛型响应模型目前仍用 class Page(BaseModel, Generic[T]) 写法
+    "UP046",
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+# backend/alembic 目录与第三方包 alembic 同名，必须显式声明，
+# 否则 ruff 会把 `from alembic import context` 误判为本地导入并排错顺序
+known-third-party = [
+    "alembic",
+    "fastapi",
+    "pydantic",
+    "pydantic_settings",
+    "sqlalchemy",
+    "sqlmodel",
+    "starlette",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# alembic/env.py 需要 star import，把 app.models 里的全部表模型装入 metadata，
+# 否则 autogenerate 会漏表（见 CLAUDE.md §11 / docs/db.md §7）
+# 用 **/ 前缀，保证从仓库根目录或 backend/ 运行都能匹配
+"**/alembic/env.py" = ["F401", "F403"]
+# stats_service 里是大段 SQL（在 text() 三引号字符串里），折行会严重损害可读性
+"**/app/services/stats_service.py" = ["E501"]

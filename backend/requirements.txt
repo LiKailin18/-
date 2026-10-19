@@ -1,0 +1,36 @@
+# 生产依赖（基线见 docs/技术栈定稿.md §7；首次跑通后按 pip freeze 锁定精确版本）
+fastapi
+uvicorn[standard]
+# 数据校验
+pydantic
+pydantic-settings
+# Pydantic 的 EmailStr 需要它（M1 注册校验邮箱用）
+email-validator
+
+# 数据层
+sqlmodel
+sqlalchemy[asyncio]
+asyncpg
+alembic
+
+# 认证（M1 起使用）
+pyjwt
+pwdlib[argon2]
+python-multipart
+
+# 文档解析（M2 起使用）
+pymupdf
+python-docx
+
+# AI（M5 起使用）
+langchain
+langgraph
+langchain-core
+langchain-openai
+langchain-text-splitters
+
+# 其他
+httpx
+sse-starlette
+# zoneinfo 需要 IANA 时区库：Windows 与 alpine 镜像都没有系统 tzdata（见 dev-notes 踩坑）
+tzdata

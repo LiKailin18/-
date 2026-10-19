@@ -1,0 +1,30 @@
+# M0 阶段只编排 PostgreSQL；backend / frontend 的镜像在 M7 加入
+# （原因见 docs/技术栈定稿.md §9：先保证本地跑通，容器化统一放到部署阶段）
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: sls-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: smart_learning
+      TZ: Asia/Shanghai
+      PGTZ: Asia/Shanghai
+    ports:
+      # 仅本机可访问；生产不再对宿主机暴露（CLAUDE.md §8）
+      - "127.0.0.1:5432:5432"
+    volumes:
+      # 注意：PostgreSQL 18 起官方镜像的数据目录布局变了，必须挂 /var/lib/postgresql
+      # 而不是旧版的 /var/lib/postgresql/data（挂旧的会报
+      # "there appears to be PostgreSQL data in: /var/lib/postgresql/data" 并拒绝启动）。
+      # 参考：docker-library/postgres PR #1259
+      - pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d smart_learning"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

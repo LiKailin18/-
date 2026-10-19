@@ -1,0 +1,7 @@
+-r requirements.txt
+
+# 开发与测试
+pytest
+pytest-asyncio
+pytest-cov
+ruff
