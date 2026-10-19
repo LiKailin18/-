@@ -376,3 +376,197 @@ export interface RecommendationsOut {
   generated_at: string
   items: RecommendationItem[]
 }
+
+/* ---------------------------------------------------------------- 功能 13 管理端 */
+
+export type UserRole = 'user' | 'admin'
+
+export interface AdminRangeOut {
+  from: string
+  to: string
+  days: number
+}
+
+export interface AdminOverviewOut {
+  range: AdminRangeOut
+  users: { total: number; active_7d: number; new_7d: number; disabled: number; admins: number }
+  content: { materials: number; notes: number; plans: number; quizzes: number }
+  activity: { study_minutes: number; task_completion_rate: number }
+  ai: { calls: number; total_tokens: number; success_rate: number; today_calls: number }
+}
+
+export interface AdminDailyItemOut {
+  date: string
+  new_users: number
+  active_users: number
+  study_minutes: number
+  ai_calls: number
+}
+
+export interface AdminDailyOut {
+  items: AdminDailyItemOut[]
+}
+
+export interface SceneStatOut {
+  scene: string
+  calls: number
+  total_tokens: number
+  success_rate: number
+  avg_latency_ms: number
+}
+
+export interface TopUserOut {
+  user_id: string
+  username: string
+  calls: number
+  total_tokens: number
+}
+
+export interface AdminAiStatsOut {
+  by_scene: SceneStatOut[]
+  top_users: TopUserOut[]
+  daily: { date: string; calls: number; total_tokens: number; failed: number }[]
+}
+
+export interface AdminUserCountsOut {
+  materials: number
+  notes: number
+  ai_calls_30d: number
+  study_minutes_30d: number
+}
+
+export interface AdminUserItemOut {
+  id: string
+  username: string
+  email: string
+  nickname: string | null
+  role: UserRole
+  is_active: boolean
+  disabled_reason: string | null
+  created_at: string
+  last_login_at: string | null
+  counts: AdminUserCountsOut
+}
+
+export interface AdminUserDetailOut extends AdminUserItemOut {
+  quiz_accuracy_30d: number
+  quiz_attempts_30d: number
+  ai_tokens_30d: number
+}
+
+export interface AdminUserPage {
+  items: AdminUserItemOut[]
+  total: number
+  page: number
+  size: number
+}
+
+export interface ResetPasswordOut {
+  temporary_password: string
+  note: string
+}
+
+export interface AdminMaterialItemOut {
+  id: string
+  title: string
+  subject: string | null
+  file_ext: string
+  size_bytes: number
+  parse_status: string
+  char_count: number | null
+  created_at: string
+  owner: { id: string; username: string }
+}
+
+export interface AdminMaterialPage {
+  items: AdminMaterialItemOut[]
+  total: number
+  page: number
+  size: number
+}
+
+export interface AdminNoteItemOut {
+  id: string
+  title: string
+  excerpt: string
+  tags: string[]
+  material_id: string | null
+  created_at: string
+  updated_at: string
+  owner: { id: string; username: string }
+}
+
+export interface AdminNotePage {
+  items: AdminNoteItemOut[]
+  total: number
+  page: number
+  size: number
+}
+
+export interface AdminQuizItemOut {
+  id: string
+  title: string
+  question_count: number
+  types: string[]
+  difficulty: string
+  material_id: string | null
+  created_at: string
+  owner: { id: string; username: string }
+}
+
+export interface AdminQuizPage {
+  items: AdminQuizItemOut[]
+  total: number
+  page: number
+  size: number
+}
+
+export interface AiUsageItemOut {
+  id: string
+  user: { id: string; username: string }
+  scene: string
+  model: string
+  prompt_tokens: number
+  completion_tokens: number
+  total_tokens: number
+  steps: number
+  latency_ms: number | null
+  ok: boolean
+  error_code: string | null
+  created_at: string
+}
+
+export interface AiUsagePage {
+  items: AiUsageItemOut[]
+  total: number
+  page: number
+  size: number
+}
+
+export interface SettingItemOut {
+  key: string
+  value: unknown
+  value_type: 'int' | 'bool' | 'string' | 'json'
+  description: string
+  editable: boolean
+  updated_at: string | null
+  updated_by_username: string | null
+}
+
+export interface AuditLogOut {
+  id: string
+  admin: { id: string; username: string } | null
+  action: string
+  target_type: string
+  target_id: string | null
+  detail: Record<string, unknown>
+  ip: string | null
+  created_at: string
+}
+
+export interface AuditLogPage {
+  items: AuditLogOut[]
+  total: number
+  page: number
+  size: number
+}

@@ -14,8 +14,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.ai.runtime import AgentUsage
 from app.ai.schemas import AdviceOut, AdviceSuggestion, QuizOut, QuizQuestion, SummaryOut
 from app.core.config import settings
-from app.models import AiGeneration, AiUsage, Material
-from app.services import ai_common, chat_service
+from app.models import AiGeneration, AiUsage, AppSetting, Material
+from app.services import ai_common, chat_service, setting_service
 from tests.ai.test_ai_tools import make_material
 from tests.conftest import TEST_PASSWORD, login
 
@@ -228,9 +228,15 @@ async def test_ai_endpoints_return_503_without_api_key(
 
 
 async def test_quota_exceeded_returns_429(
-    db_client, auth_headers, parsed_material, stub_models, monkeypatch
+    db_client, auth_headers, parsed_material, stub_models, db_session: AsyncSession
 ):
-    monkeypatch.setattr(settings, "ai_daily_quota", 0)
+    # 配额从 M6b 起是可配项（app_setting.ai.daily_quota）。管理端 API 只允许 1..10000，
+    # 这里为了触发 429 直接把配置值写成 0（模拟「额度已用尽」）。
+    row = await db_session.get(AppSetting, "ai.daily_quota")
+    assert row is not None
+    row.value = 0
+    await db_session.commit()
+    setting_service._cache.clear()
 
     resp = await db_client.post(
         SUMMARIES_URL, json={"material_id": str(parsed_material.id)}, headers=auth_headers

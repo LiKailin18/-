@@ -117,11 +117,20 @@ def resolve_safe(relative_path: str) -> Path:
     return target
 
 
-async def save_upload(upload: UploadFile, *, owner_id: uuid.UUID, subdir: str = "") -> SavedFile:
+async def save_upload(
+    upload: UploadFile,
+    *,
+    owner_id: uuid.UUID,
+    subdir: str = "",
+    max_bytes: int | None = None,
+) -> SavedFile:
     """流式落盘并做三重校验：扩展名 → 大小 → 文件头魔数。
 
     先写到 .part 临时文件，全部校验通过才改名，
     避免半截文件被当成有效资料（也避免占着正式路径）。
+
+    `max_bytes` 由调用方决定：上传上限是**可配项**（`app_setting.upload.max_mb`），
+    而本模块是纯工具、拿不到 db，所以不在这里读配置。
     """
     original_name = upload.filename or ""
     ext = Path(original_name).suffix.lower()
@@ -142,15 +151,16 @@ async def save_upload(upload: UploadFile, *, owner_id: uuid.UUID, subdir: str = 
 
     digest = hashlib.sha256()
     size = 0
-    max_bytes = settings.max_upload_mb * 1024 * 1024
+    limit_bytes = max_bytes if max_bytes is not None else settings.max_upload_mb * 1024 * 1024
+    limit_mb = max(1, round(limit_bytes / 1024 / 1024))
     head = b""
 
     try:
         with temp_path.open("wb") as fp:
             while chunk := await upload.read(_CHUNK):
                 size += len(chunk)
-                if size > max_bytes:
-                    raise FileTooLargeError(f"文件超过 {settings.max_upload_mb} MB 限制")
+                if size > limit_bytes:
+                    raise FileTooLargeError(f"文件超过 {limit_mb} MB 限制")
                 if len(head) < 8:
                     head += chunk[: 8 - len(head)]
                 digest.update(chunk)

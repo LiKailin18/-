@@ -3,12 +3,21 @@
 import json
 import uuid
 
-from fastapi import APIRouter, Query, Request, status
+from fastapi import APIRouter, Depends, Query, Request, status
 from sse_starlette.sse import EventSourceResponse
 
 from app.ai import usage as usage_module
-from app.core.deps import CurrentUser, DbSession, PageParams
-from app.core.openapi import ERR_400, ERR_401, ERR_403, ERR_404, ERR_429, ERR_502, ERR_504
+from app.core.deps import CurrentUser, DbSession, PageParams, get_ai_enabled
+from app.core.openapi import (
+    ERR_400,
+    ERR_401,
+    ERR_403,
+    ERR_404,
+    ERR_429,
+    ERR_502,
+    ERR_503,
+    ERR_504,
+)
 from app.schemas.ai import (
     AdviceBrief,
     AdviceGenerateIn,
@@ -33,11 +42,14 @@ from app.utils.time import app_tz, today_local
 router = APIRouter(
     prefix="/ai",
     tags=["AI 能力"],
+    # 总开关：管理员关掉 ai.enabled 后整组接口 503（功能 13.5）
+    dependencies=[Depends(get_ai_enabled)],
     responses={
         status.HTTP_401_UNAUTHORIZED: ERR_401,
         status.HTTP_403_FORBIDDEN: ERR_403,
         status.HTTP_404_NOT_FOUND: ERR_404,
         status.HTTP_429_TOO_MANY_REQUESTS: ERR_429,
+        status.HTTP_503_SERVICE_UNAVAILABLE: ERR_503,
         status.HTTP_504_GATEWAY_TIMEOUT: ERR_504,
     },
 )

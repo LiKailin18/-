@@ -112,6 +112,13 @@
 | 2026-10-19 | ECharts 6 提示 `grid.containLabel` 已废弃；antd 6 再报 `Button.iconPosition` 已废弃 | 两个库在 6.x 都改了名 | ECharts 用 `outerBoundsMode:'same' + outerBoundsContain:'axisLabel'`（官方给的等价写法）；antd 用 `iconPlacement` |
 | 2026-10-19 | 改完 `StatsPage.tsx` 在页面上验证，控制台仍报旧警告 | Vite 的转换缓存又返回了旧模块（本项目第二次踩，第一次见上一条「router 常量」） | 验证前先 `fetch('/src/pages/StatsPage.tsx')` 看 dev server **实际服务的源码**是不是新版，必要时重启 vite；别对着旧模块下结论 |
 | 2026-10-19 | echarts 全量导入把懒加载 chunk 撑到 1.13 MB | `import * as echarts from 'echarts'` 会把所有图表类型都打进来 | 改用 `echarts/core` + `use([BarChart, LineChart, PieChart, GridComponent, LegendComponent, TooltipComponent, CanvasRenderer])`，chunk 降到 568 KB（gzip 377 → 193 KB） |
+| 2026-10-19 | 系统配置改了却「一会儿才生效」/ 用例之间串场 | `setting_service` 的 60 秒缓存是**进程级**的，而测试只回滚数据库：某个用例把 `ai.daily_quota` 改成 200 后，后续用例读到 200 | 写操作里立即 `_cache.clear()`（改完即生效）；测试里加 **autouse fixture 清缓存**。凡是「进程内缓存 + 事务回滚」的组合都要这么处理 |
+| 2026-10-19 | SQLModel 报 `TypeError: one of the hex, bytes... must be given` | 给 `uuid.UUID | None` 字段写了 `Field(default=None, sa_type=uuid.UUID)` —— 传进去的是 **Python 的 uuid 类**，不是 SQLAlchemy 类型，构造 Column 时被当成要实例化 | UUID 字段**不要写 `sa_type`**，SQLModel 会自己映射成 `sa.Uuid()` |
+| 2026-10-19 | Pydantic 报 `got multiple values for keyword argument 'counts'` | 路由里 `Model(**item, counts=Model2(...))`，而 `item` 里本来就有 `counts` 键 | 直接 `Model.model_validate(item)`，嵌套模型会自动校验 |
+| 2026-10-19 | 「关闭 AI」到底关哪些接口，一度想着整组关掉 | 会把答卷判分（纯计算、不调模型）也关掉，用户做题提交失败 | 路由级依赖只挂 `/api/v1/ai/*`；判分在 `/quizzes/{id}/attempts` 不受影响。**开关的作用域要按「是否真的消耗资源」划，不按模块名划** |
+| 2026-10-19 | 只读配置 `ai.model_name` 显示成种子值 `deepseek-chat`，而实际模型是 `qwen-plus` | `load_all` 把库里那行也当成覆盖值；但只读项本应以**部署配置**为准（库里只是历史记录） | `load_all` 跳过 `editable=false` 的键；`list_settings` 的 `value` 取实时配置 |
+| 2026-10-19 | 前端「AI 已暂停」分支怎么都不生效，改了三次代码都不出现 | 不是代码问题，是 **Vite 把 `AiPage.tsx?t=<旧时间戳>` 的转换结果缓存住了**（第三次踩同一个坑）。`fetch` 该 URL 返回的仍是旧代码，页面自然跑旧逻辑 | 全量重启 vite 后确认 **router 的转换产物里 import 不再带 `?t=`**（`fetch('/src/router/index.tsx', {cache:'reload'})` grep 一下），再开新标签页验证；别在带时间戳的旧 URL 上反复改代码 |
+| 2026-10-19 | 流式问答的 token 一直记成 0，管理端用量报表里 qa 场景明显偏低 | `ChatOpenAI` 默认不在流式响应里带 usage；`stream_text` 靠 `chunk.usage_metadata` 累加，于是全是 0 | `build_chat_model(..., stream_usage=True)`（OpenAI 兼容协议 `stream_options.include_usage`）。实测一次问答：817 + 47 = 864 tokens |
 
 ---
 
@@ -341,7 +348,42 @@
 
 ---
 
-## 11. 待确认事项
+## 11. M6b 验收结果（功能 13 管理员端，2026-10-19 · 全部通过）
+
+| 验收项 | 结果 | 证据 |
+|---|---|---|
+| 2 张新表 + 迁移 | ✅ | `app_setting`（KV + `value_type`）、`admin_audit_log`（只增不改不删）；迁移 `0006_admin` 插 5 条初始配置；`alembic check` 无 diff |
+| 管理员鉴权 | ✅ | 复用 `get_current_admin`：非管理员 → 403 `AUTH_004`；匿名 → 401；角色**读库**、不信令牌声明 |
+| 13.1 仪表盘 | ✅ | 用户 / 内容 / 学习 / AI 四组指标 + 每日趋势（新用户、日活、时长、AI 调用，**补零**） |
+| 13.2 用户管理 | ✅ | 列表 counts 用**相关子查询**一次取回（用例监听 SQL，断言 ≤ 6 条语句，杜绝 N+1）；禁用必填原因；启用清空原因；改状态/角色 → `token_version + 1` 旧令牌立即失效 |
+| 13.2 管理员自我保护 | ✅ | 禁用 / 降级 / 重置密码 / 强制下线自己 → 400 `ADMIN_001`（前端也禁用按钮，后端才是真拦截） |
+| 13.3 内容管理 | ✅ | 资料 / 笔记 / 测试题跨用户列表；**不返回**资料正文、笔记正文、题目与答案；下架为软删除；资料下架同时删磁盘文件；重新解析 202 + 后台任务 |
+| 内容下架与统计口径 | ✅ | 测试题下架后 `quiz_attempt` 保留并继续计入统计（论文「设计取舍」素材） |
+| 13.4 AI 用量 | ✅ | 按场景 / Top 用户 / 每日（含失败数）+ 调用明细（用户、场景、结果、日期筛选、分页） |
+| 13.5 配置生效 | ✅ | `ai.enabled=false` → 整组 `/ai/*` 503 且前端显示「AI 功能已暂停」；`register.allow=false` → 注册 503；配额与上传上限改读配置表；**写后即清缓存，立即生效** |
+| 13.5 只读项 | ✅ | `ai.model_name` 拒绝写入（400），列表展示的是**部署实时模型**（`qwen-plus`），不是库里的历史值 |
+| 13.5 审计 | ✅ | 10 类 action 全带前后快照；与业务变更**同事务**提交；只读（DELETE → 405）；支持按管理员 / 动作 / 对象 / 日期筛选 |
+| 管理端前端 | ✅ | `/admin` 独立 `AdminLayout`（左侧菜单 + 面包屑）+ `RequireRole`（进入时**重新请求 `/users/me`**）；5 个页面全部实机验证；入口只在 `role='admin'` 时出现在头像菜单 |
+| 前端权限实测 | ✅ | 普通用户访问 `/admin/users` → 403「只有管理员可以访问管理端」；管理员正常 |
+| 第一个管理员 | ✅ | 新增 `backend/scripts/create_admin.py`（`--promote` / 新建），因为管理端不能给自己提权 |
+| 流式用量修复 | ✅ | `stream_usage=True` 后 SSE 问答也记 token（实测 817 + 47 = 864），管理端报表不再把 qa 算成 0 |
+
+**M6b 实际投入**
+
+| 环节 | 实际耗时 | 说明 |
+|---|---|---|
+| 契约复核 + 2 张表 + 迁移/种子 | ~30 min | 迁移里直接插配置，`alembic check` 验证无 diff |
+| 配置与审计底座（含缓存 / 只读项 / 类型校验） | ~55 min | 写入即清缓存 + 同事务审计 |
+| 13.1 仪表盘 + 13.4 用量 | ~50 min | 跨用户聚合，日期补零 |
+| 13.2 用户管理（N+1 / 自我保护 / 改密 / 下线） | ~60 min | 相关子查询 + `token_version` 失效链 |
+| 13.3 内容管理 | ~40 min | 软删除、文件删除、答案不下发 |
+| 前端 5 个页面 + 守卫 + 布局 | ~110 min | 表格、抽屉、弹窗、图表、审计筛选 |
+| 联调排障（Vite 缓存第三次 / 流式 token / 只读配置） | ~45 min | 见 §3 |
+| **合计** | **约 6.5 小时** | |
+
+---
+
+## 12. 待确认事项
 
 | 项 | 状态 | 结论 |
 |---|---|---|

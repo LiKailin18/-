@@ -140,7 +140,16 @@ npm run dev                                                      # http://localh
 （开发期前端只访问同源路径，由 Vite 代理转发到 8000 端口，不产生跨域。）
 
 主要页面：`/` 工作台 · `/materials` 学习资料 · `/notes` 在线笔记 · `/plans` 计划/任务/记录 ·
-`/ai` AI 助手（问答 / 总结 / 测试题 / 建议）· `/stats` 学习统计图表 · `/profile` 个人信息。
+`/ai` AI 助手（问答 / 总结 / 测试题 / 建议）· `/stats` 学习统计图表 · `/profile` 个人信息 ·
+`/admin/*` 管理端（功能 13，仅管理员可见：仪表盘 / 用户 / 内容 / AI 用量 / 配置与审计）。
+
+**第一个管理员**（管理端不能给自己提权，必须走命令行）：
+
+```bash
+cd backend
+.venv\Scripts\python scripts\create_admin.py --username admin --email admin@example.com --password Admin1234!
+# 或把已有用户提升为管理员：--promote <username>
+```
 
 ---
 
@@ -181,6 +190,6 @@ npm run build
 
 ## 开发进度
 
-当前阶段：**M6 统计图表 + 个性化推荐 + 全局异常 ✅ 已完成**（185 个用例；`/stats` 四个统计接口 + `/recommendations` 规则推荐 + 前端统计页与工作台改造）。
-下一步：**M6b 功能 13 管理员端**（13.1 仪表盘 / 13.2 用户 / 13.3 内容 / 13.4 AI 用量 / 13.5 配置与审计），之后 M7（测试、部署、论文材料）。
-里程碑定义见 [`CLAUDE.md`](CLAUDE.md) §17；验收结果与踩坑见 [`docs/dev-notes.md`](docs/dev-notes.md) §3、§4–§10。
+当前阶段：**M6b 功能 13 管理员端 ✅ 已完成**（2 张新表 + 13.1–13.5 五个子模块 + `/admin` 前端，227 个用例）。
+下一步：**M7 测试、Docker 部署、截图与论文材料**。
+里程碑定义见 [`CLAUDE.md`](CLAUDE.md) §17；验收结果与踩坑见 [`docs/dev-notes.md`](docs/dev-notes.md) §3、§4–§11。

@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
-import { Card, Flex, Progress, Space, Statistic, Tabs, Tag, Typography } from 'antd'
+import { Button, Card, Flex, Progress, Result, Space, Statistic, Tabs, Tag, Typography } from 'antd'
+import { useNavigate } from 'react-router'
 
 import { getAiUsage } from '../api/ai'
 import AdviceTab from './ai/AdviceTab'
@@ -11,7 +12,33 @@ const { Text, Title } = Typography
 
 /** AI 能力总览：把功能 7–10 放在一个页面里，顶部统一显示今日用量与配额。 */
 export default function AiPage() {
-  const { data: usage } = useQuery({ queryKey: ['ai-usage'], queryFn: () => getAiUsage(7) })
+  const navigate = useNavigate()
+  const { data: usage, error, isError } = useQuery({
+    queryKey: ['ai-usage'],
+    queryFn: () => getAiUsage(7),
+    retry: false,
+  })
+
+  // 管理员可以把 AI 整个关掉（功能 13.5）→ 整组 /ai/* 返回 503。
+  // 用「读 status 字段」而不是 instanceof：HMR / 多 chunk 下类身份不一定相同；
+  // 取不到 status 时也按「不可用」处理（否则 503 会退化成一片空表格）。
+  const status = (error as { status?: number } | null)?.status
+  if (isError && (status === 503 || status === undefined)) {
+    return (
+      <Card>
+        <Result
+          status="warning"
+          title="AI 功能已暂停"
+          subTitle="管理员已关闭 AI 功能，总结 / 出题 / 建议 / 问答暂时不可用。已生成的题目仍可继续作答。"
+          extra={
+            <Button type="primary" onClick={() => void navigate('/')}>
+              返回工作台
+            </Button>
+          }
+        />
+      </Card>
+    )
+  }
 
   const quotaPercent = usage
     ? Math.min(100, Math.round((usage.today_calls / Math.max(1, usage.daily_quota)) * 100))

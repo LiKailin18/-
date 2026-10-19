@@ -1,4 +1,4 @@
-import { LogoutOutlined, UserOutlined } from '@ant-design/icons'
+import { LogoutOutlined, SafetyCertificateOutlined, UserOutlined } from '@ant-design/icons'
 import { App as AntdApp, Dropdown, Flex, Layout, Menu, Typography } from 'antd'
 import { Link, Outlet, useLocation, useNavigate } from 'react-router'
 
@@ -57,8 +57,12 @@ export default function MainLayout() {
           menu={{
             items: [
               { key: '/profile', icon: <UserOutlined />, label: '个人信息' },
+              // 管理端入口只对管理员出现（契约 §16.7：入口只在 role === 'admin' 时显示）
+              ...(user?.role === 'admin'
+                ? [{ key: '/admin', icon: <SafetyCertificateOutlined />, label: '管理端' }]
+                : []),
               { key: '/status', label: '环境自检' },
-              { type: 'divider' },
+              { type: 'divider' as const },
               { key: 'signout', icon: <LogoutOutlined />, label: '退出登录' },
             ],
             onClick: ({ key }) => {

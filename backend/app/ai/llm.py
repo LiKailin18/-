@@ -30,4 +30,7 @@ def build_chat_model(*, temperature: float = 0.2) -> ChatOpenAI:
         temperature=temperature,
         timeout=settings.llm_timeout,
         max_retries=settings.llm_max_retries,
+        # 流式也要带上用量（OpenAI 兼容协议：stream_options.include_usage）。
+        # 不打开的话，SSE 场景拿不到 usage_metadata，问答的 token 会被记成 0。
+        stream_usage=True,
     )

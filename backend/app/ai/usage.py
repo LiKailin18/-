@@ -10,8 +10,7 @@ from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.runtime import AgentUsage
-from app.core.config import settings
-from app.core.exceptions import AiQuotaExceeded
+from app.core.exceptions import AiQuotaExceeded, FeatureDisabled
 from app.models import AiUsage
 from app.utils.time import app_tz
 
@@ -19,7 +18,19 @@ SCENES = ("qa", "summary", "quiz", "advice")
 
 
 async def ensure_quota(db: AsyncSession, *, user_id: uuid.UUID) -> int:
-    """检查当日配额；返回今天已用次数。超出则抛 429。"""
+    """AI 生成前的统一闸门：先看总开关，再看当日配额。
+
+    四个场景（qa / summary / quiz / advice）都从这里进，所以「ai.enabled=false 后
+    生成类接口一律 503」只在这一处实现即可；历史列表、答卷判分不经过这里，
+    不受影响（它们不消耗模型调用）。
+    """
+    from app.services import setting_service
+
+    if not await setting_service.is_enabled(db, "ai.enabled"):
+        raise FeatureDisabled("AI 功能已暂停，请联系管理员")
+
+    quota = await setting_service.get_int(db, "ai.daily_quota")
+
     used = await db.scalar(
         select(func.count())
         .select_from(AiUsage)
@@ -30,7 +41,7 @@ async def ensure_quota(db: AsyncSession, *, user_id: uuid.UUID) -> int:
         )
     )
     used_count = int(used or 0)
-    if used_count >= settings.ai_daily_quota:
+    if used_count >= quota:
         raise AiQuotaExceeded
     return used_count
 
@@ -68,7 +79,10 @@ async def usage_summary(db: AsyncSession, *, user_id: uuid.UUID, days: int = 7) 
     """近 N 天用量汇总（给 GET /ai/usage）。"""
     from datetime import timedelta
 
+    from app.services import setting_service
     from app.utils.time import today_local
+
+    quota = await setting_service.get_int(db, "ai.daily_quota")
 
     end = today_local()
     start = end - timedelta(days=days - 1)
@@ -100,7 +114,7 @@ async def usage_summary(db: AsyncSession, *, user_id: uuid.UUID, days: int = 7) 
     return {
         "days": days,
         "today_calls": int(today_calls or 0),
-        "daily_quota": settings.ai_daily_quota,
+        "daily_quota": quota,
         "prompt_tokens": int(row.prompt or 0),
         "completion_tokens": int(row.completion or 0),
         "total_tokens": int(row.prompt or 0) + int(row.completion or 0),

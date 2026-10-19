@@ -15,6 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import (
     AccountDisabled,
+    FeatureDisabled,
     Forbidden,
     InvalidToken,
     TokenExpired,
@@ -73,6 +74,22 @@ async def get_current_admin(user: Annotated[AppUser, Depends(get_current_user)])
 
 CurrentUser = Annotated[AppUser, Depends(get_current_user)]
 CurrentAdmin = Annotated[AppUser, Depends(get_current_admin)]
+
+
+async def get_ai_enabled(db: DbSession) -> None:
+    """AI 总开关（功能 13.5 的生效点）。
+
+    作为 `/api/v1/ai/*` 的路由级依赖：关掉后整组接口 503，
+    前端据此把 AI 入口置灰并提示「AI 功能已暂停」。
+    答卷判分（`/quizzes/{id}/attempts`）不在这一组里 —— 它不调用模型，不该被关掉。
+    """
+    from app.services import setting_service
+
+    if not await setting_service.is_enabled(db, "ai.enabled"):
+        raise FeatureDisabled("AI 功能已暂停，请联系管理员")
+
+
+AiEnabled = Annotated[None, Depends(get_ai_enabled)]
 
 
 class PaginationParams:

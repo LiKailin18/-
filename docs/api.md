@@ -982,7 +982,7 @@ item 中的 `counts` 必须用**一条聚合子查询**取得，不允许逐行�
 | 按 `value_type` 校验 | `int` 范围 1..10000；`bool` 必须为布尔；`string` ≤200 字 |
 | 缓存 | 写入后立即清除 60 秒进程内缓存 |
 | 审计 | `setting.update`，`detail` 含 from/to 快照 |
-| 关闭 AI | `ai.enabled=false` 后所有 AI 接口返回 503 `SYS_503`，前端置灰入口并提示「AI 功能已暂停」 |
+| 关闭 AI | `ai.enabled=false` 后**整组 `/api/v1/ai/*` 返回 503 `SYS_503`**（路由级依赖，前端据此置灰入口并提示「AI 功能已暂停」）；答卷判分 `/quizzes/{id}/attempts` **不受影响** —— 它不调用模型 |
 | 关闭注册 | `register.allow=false` 后 `POST /auth/register` 返回 503 `SYS_503` |
 
 ### 16.6 操作审计（功能 13.5）

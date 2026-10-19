@@ -16,12 +16,13 @@
     12 记录   → api/v1/records.py
     —  文件   → api/v1/files.py（头像等受保护的文件访问）
     ...
-    13 管理端 → api/v1/admin/*.py        (M6b)
+    13 管理端 → api/v1/admin/*.py（stats / users / content / settings / audit）
 """
 
 from fastapi import APIRouter
 
 from app.api.v1 import (
+    admin,
     ai,
     auth,
     files,
@@ -47,4 +48,5 @@ api_v1_router.include_router(records.router)
 api_v1_router.include_router(ai.router)
 api_v1_router.include_router(quizzes.router)
 api_v1_router.include_router(stats.router)
+api_v1_router.include_router(admin.admin_router)
 api_v1_router.include_router(files.router)

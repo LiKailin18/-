@@ -6,6 +6,7 @@
 表结构一律先在 docs/db.md 定义，再写模型。
 """
 
+from app.models.admin import AdminAuditLog, AppSetting
 from app.models.ai import AiGeneration, AiUsage
 from app.models.chat import ChatMessage, ChatSession
 from app.models.material import Material
@@ -17,8 +18,10 @@ from app.models.task import StudyTask
 from app.models.user import AppUser, utcnow
 
 __all__ = [
+    "AdminAuditLog",
     "AiGeneration",
     "AiUsage",
+    "AppSetting",
     "AppUser",
     "ChatMessage",
     "ChatSession",

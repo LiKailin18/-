@@ -225,6 +225,18 @@ class FeatureDisabled(AppError):
     message = "该功能已暂停使用"
 
 
+class AdminSelfOperation(AppError):
+    """管理员对自己执行危险操作（禁用 / 降级 / 重置密码 / 强制下线）。
+
+    防的是「把自己锁死」——直接拒绝，而不是允许之后再补救。
+    """
+
+    status_code = status.HTTP_400_BAD_REQUEST
+    code = "ADMIN_001"
+    message = "不能对自己执行该操作"
+    detail = "管理员不能禁用、降级、重置自己的密码或强制自己下线"
+
+
 # --------------------------------------------------------------------- 处理器
 
 

@@ -586,8 +586,19 @@ FROM days ORDER BY d;
 ## 8. 初始化与测试数据
 
 - 开发环境用 `alembic upgrade head` 建表；**不提供** seed 脚本自动插业务数据。
+- `0006_admin`（`20261019_3b81d0dc7f6c_admin`）的 `upgrade()` 会插入 5 条 `app_setting` 初始配置
+  （`ai.daily_quota` / `ai.enabled` / `ai.model_name` / `register.allow` / `upload.max_mb`）。
+- **第一个管理员**必须走命令行（管理端接口都要求 `role='admin'`，没人能给自己提权）：
+
+  ```bash
+  cd backend
+  .venv\Scripts\python scripts\create_admin.py --username admin --email admin@example.com --password Admin1234!
+  # 或把已有用户提升为管理员：
+  .venv\Scripts\python scripts\create_admin.py --promote zhangsan
+  ```
+
 - 测试库：每个测试用例在事务中执行并回滚（`pytest` fixture 提供 `AsyncSession`，`async with engine.connect()` + 外层事务）。
-- 需要一个测试用户 fixture（`test_user` / `Test1234!`），供 `tests/api/*` 复用。
+- 需要一个测试用户 fixture（`test_user` / `Test1234!`）与管理员 fixture（`admin_user` / `admin_headers`），供 `tests/api/*` 复用。
 
 ---
 

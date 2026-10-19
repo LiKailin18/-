@@ -34,6 +34,20 @@ def isolated_upload_dir(tmp_path, monkeypatch):
     return target
 
 
+@pytest.fixture(autouse=True)
+def clear_setting_cache():
+    """系统配置有 60 秒进程内缓存（`setting_service`）。
+
+    缓存是**进程级**的，而用例之间只回滚数据库 —— 不清缓存的话，
+    某个用例把 `ai.daily_quota` 改成 200 之后，后续用例会读到 200。
+    """
+    from app.services import setting_service
+
+    setting_service._cache.clear()
+    yield
+    setting_service._cache.clear()
+
+
 @pytest.fixture(scope="session", autouse=True)
 async def _dispose_engine_after_session() -> AsyncGenerator[None, None]:
     """整个测试会话结束后释放连接池，避免残留连接导致的事件循环告警。"""
@@ -109,3 +123,27 @@ async def login(db_client: AsyncClient, username: str, password: str) -> dict[st
 @pytest.fixture
 async def auth_headers(db_client: AsyncClient, test_user: AppUser) -> dict[str, str]:
     return await login(db_client, test_user.username, TEST_PASSWORD)
+
+
+@pytest.fixture
+async def admin_user(db_session: AsyncSession) -> AppUser:
+    """一个管理员账号（功能 13 的用例用它登录）。"""
+    user = await user_service.create_user(
+        db_session,
+        UserCreate(
+            username="test_admin",
+            email="test_admin@example.com",
+            password=TEST_PASSWORD,
+            nickname="测试管理员",
+        ),
+    )
+    user.role = "admin"
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest.fixture
+async def admin_headers(db_client: AsyncClient, admin_user: AppUser) -> dict[str, str]:
+    return await login(db_client, admin_user.username, TEST_PASSWORD)

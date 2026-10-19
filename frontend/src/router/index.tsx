@@ -5,6 +5,7 @@ import PageSuspense from '../components/PageSuspense'
 import MainLayout from '../layouts/MainLayout'
 import GuestOnly from './GuestOnly'
 import RequireAuth from './RequireAuth'
+import RequireRole from './RequireRole'
 
 // 路由级懒加载：首屏只下载登录页/布局，资料、个人中心等按需加载
 const DashboardPage = lazy(() => import('../pages/DashboardPage'))
@@ -18,13 +19,21 @@ const HomePage = lazy(() => import('../pages/HomePage'))
 const LoginPage = lazy(() => import('../pages/auth/LoginPage'))
 const RegisterPage = lazy(() => import('../pages/auth/RegisterPage'))
 
+// 功能 13 管理端：独立布局 + 独立 chunk（普通用户不会下载这些代码）
+const AdminLayout = lazy(() => import('../layouts/AdminLayout'))
+const AdminDashboardPage = lazy(() => import('../pages/admin/AdminDashboardPage'))
+const AdminUsersPage = lazy(() => import('../pages/admin/AdminUsersPage'))
+const AdminContentPage = lazy(() => import('../pages/admin/AdminContentPage'))
+const AdminAiUsagePage = lazy(() => import('../pages/admin/AdminAiUsagePage'))
+const AdminSettingsPage = lazy(() => import('../pages/admin/AdminSettingsPage'))
+
 /**
  * 路由表。
  *
  * 约定：
  * - 登录态由 `useAuthStore` 统一判定，这里只做「放行 / 跳转」
  * - `/status` 保留 M0 的环境自检页（排查部署问题很有用）
- * - 管理端（功能 13）M6b 再挂 `/admin/*`，沿用同一套懒加载方式
+ * - 管理端（功能 13）挂在 `/admin/*`，走 `RequireRole` 守卫 + 独立 `AdminLayout`（M6b）
  */
 export const router = createBrowserRouter([
   {
@@ -116,6 +125,60 @@ export const router = createBrowserRouter([
         element: (
           <PageSuspense>
             <HomePage />
+          </PageSuspense>
+        ),
+      },
+    ],
+  },
+  {
+    path: '/admin',
+    element: (
+      <RequireAuth>
+        <RequireRole>
+          <PageSuspense>
+            <AdminLayout />
+          </PageSuspense>
+        </RequireRole>
+      </RequireAuth>
+    ),
+    children: [
+      {
+        index: true,
+        element: (
+          <PageSuspense>
+            <AdminDashboardPage />
+          </PageSuspense>
+        ),
+      },
+      {
+        path: 'users',
+        element: (
+          <PageSuspense>
+            <AdminUsersPage />
+          </PageSuspense>
+        ),
+      },
+      {
+        path: 'content',
+        element: (
+          <PageSuspense>
+            <AdminContentPage />
+          </PageSuspense>
+        ),
+      },
+      {
+        path: 'ai-usage',
+        element: (
+          <PageSuspense>
+            <AdminAiUsagePage />
+          </PageSuspense>
+        ),
+      },
+      {
+        path: 'settings',
+        element: (
+          <PageSuspense>
+            <AdminSettingsPage />
           </PageSuspense>
         ),
       },

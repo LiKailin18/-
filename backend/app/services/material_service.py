@@ -19,6 +19,7 @@ from app.core.exceptions import BadRequest, NotFound
 from app.db.engine import SessionLocal
 from app.models import Material, utcnow
 from app.schemas.material import MaterialTextOut, MaterialUpdate
+from app.services import setting_service
 from app.utils import doc_parser, files
 from app.utils import text as text_utils
 
@@ -139,7 +140,11 @@ async def create_material(
     original_name = files.sanitize_filename(upload.filename)
     default_title = Path(original_name).stem[:200] or "未命名资料"
 
-    saved = await files.save_upload(upload, owner_id=user_id)
+    # 上传上限可配（功能 13.5）：配置表优先，兜底 .env
+    max_mb = await setting_service.get_int(db, "upload.max_mb")
+    saved = await files.save_upload(
+        upload, owner_id=user_id, max_bytes=max_mb * 1024 * 1024
+    )
 
     material = Material(
         user_id=user_id,

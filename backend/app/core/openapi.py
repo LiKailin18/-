@@ -16,7 +16,9 @@ def error_response(description: str) -> dict:
     return {"model": ErrorOut, "description": description}
 
 
-ERR_400 = error_response("请求有误（SYS_400 / USER_004 / MAT_003 等，看 message）")
+ERR_400 = error_response(
+    "请求有误（SYS_400 / USER_004 / ADMIN_001 等，看 message）"
+)
 ERR_401 = error_response("未登录(AUTH_001) / 令牌过期(AUTH_002) / 令牌无效或已吊销(AUTH_003)")
 ERR_403 = error_response("权限不足(AUTH_004) / 账号被禁用(USER_003) / 来源校验失败(AUTH_005)")
 ERR_404 = error_response("资源不存在**或不属于当前用户**（故意不区分，防 ID 枚举）")

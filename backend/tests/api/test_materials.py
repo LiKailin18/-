@@ -12,9 +12,8 @@ import pytest
 from docx import Document
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
-from app.models import Material
-from app.services import material_service
+from app.models import AppSetting, Material
+from app.services import material_service, setting_service
 from tests.conftest import TEST_PASSWORD, login
 
 MATERIALS_URL = "/api/v1/materials"
@@ -149,8 +148,14 @@ async def test_upload_rejects_fake_pdf(db_client, auth_headers):
     assert resp.json()["code"] == "MAT_003"
 
 
-async def test_upload_rejects_too_large_file(db_client, auth_headers, monkeypatch):
-    monkeypatch.setattr(settings, "max_upload_mb", 1)
+async def test_upload_rejects_too_large_file(db_client, auth_headers, db_session: AsyncSession):
+    # 上传上限是可配项（app_setting.upload.max_mb），不读 .env
+    row = await db_session.get(AppSetting, "upload.max_mb")
+    assert row is not None
+    row.value = 1
+    await db_session.commit()
+    setting_service._cache.clear()
+
     big = docx_bytes("x" * 2000) + b"\x00" * (1 * 1024 * 1024 + 1024)
 
     resp = await db_client.post(

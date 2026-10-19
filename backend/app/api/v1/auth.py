@@ -12,8 +12,14 @@ from fastapi.security import OAuth2PasswordRequestForm
 
 from app.core.config import settings
 from app.core.deps import DbSession, load_user_from_payload
-from app.core.exceptions import CsrfRejected, InvalidToken, TokenExpired, Unauthorized
-from app.core.openapi import ERR_401, ERR_403, ERR_409
+from app.core.exceptions import (
+    CsrfRejected,
+    FeatureDisabled,
+    InvalidToken,
+    TokenExpired,
+    Unauthorized,
+)
+from app.core.openapi import ERR_401, ERR_403, ERR_409, ERR_503
 from app.core.security import (
     TokenExpiredError,
     TokenInvalidError,
@@ -22,7 +28,7 @@ from app.core.security import (
 )
 from app.schemas.auth import TokenOut
 from app.schemas.user import UserCreate, UserOut
-from app.services import user_service
+from app.services import setting_service, user_service
 
 logger = logging.getLogger(__name__)
 
@@ -83,10 +89,18 @@ def _issue_tokens(user) -> tuple[str, str]:
     summary="注册",
     status_code=status.HTTP_201_CREATED,
     response_model=UserOut,
-    responses={status.HTTP_409_CONFLICT: ERR_409},
+    responses={
+        status.HTTP_409_CONFLICT: ERR_409,
+        status.HTTP_503_SERVICE_UNAVAILABLE: ERR_503,
+    },
 )
 async def register(payload: UserCreate, db: DbSession) -> UserOut:
-    """注册成功**不自动登录**，前端随后调用 /auth/login（契约 §3）。"""
+    """注册成功**不自动登录**，前端随后调用 /auth/login（契约 §3）。
+
+    管理端可以关闭注册（`register.allow=false` → 503 SYS_503，契约 §16.5）。
+    """
+    if not await setting_service.is_enabled(db, "register.allow"):
+        raise FeatureDisabled("注册功能已关闭，请联系管理员")
     user = await user_service.create_user(db, payload)
     return UserOut.model_validate(user)
 
