@@ -36,12 +36,12 @@ export default function AdminDashboardPage() {
   const userOption = useMemo(
     () => ({
       tooltip: { trigger: 'axis' as const },
-      legend: { data: ['新增用户', '活跃用户'] },
+      legend: { data: ['新增用户', '活跃用户'], top: 0, left: 'center' },
       grid: {
         left: 8,
         right: 8,
         bottom: 8,
-        top: 40,
+        top: 48,
         containLabel: true,
       },
       xAxis: {
@@ -73,12 +73,12 @@ export default function AdminDashboardPage() {
   const usageOption = useMemo(
     () => ({
       tooltip: { trigger: 'axis' as const },
-      legend: { data: ['学习时长', 'AI 调用'] },
+      legend: { data: ['学习时长', 'AI 调用'], top: 0, left: 'center' },
       grid: {
         left: 8,
         right: 8,
         bottom: 8,
-        top: 40,
+        top: 48,
         containLabel: true,
       },
       xAxis: {

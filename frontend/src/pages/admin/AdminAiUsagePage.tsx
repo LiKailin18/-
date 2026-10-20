@@ -73,12 +73,12 @@ export default function AdminAiUsagePage() {
   const dailyOption = useMemo(
     () => ({
       tooltip: { trigger: 'axis' as const },
-      legend: { data: ['调用次数', '失败次数'] },
+      legend: { data: ['调用次数', '失败次数'], top: 0, left: 'center' },
       grid: {
         left: 8,
         right: 8,
         bottom: 8,
-        top: 40,
+        top: 48,
         containLabel: true,
       },
       xAxis: {

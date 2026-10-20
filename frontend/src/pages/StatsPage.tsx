@@ -55,12 +55,13 @@ export default function StatsPage() {
   const trendOption = useMemo(
     () => ({
       tooltip: { trigger: 'axis' as const },
-      legend: { data: ['学习时长', '完成任务'] },
+      // ECharts 6 的 legend 默认在「底部」，会压住 x 轴 —— 显式放到顶部
+      legend: { data: ['学习时长', '完成任务'], top: 0, left: 'center' },
       grid: {
         left: 8,
         right: 8,
         bottom: 8,
-        top: 40,
+        top: 48,
         // 自动为坐标轴标签/名称留白（已注册 LegacyGridContainLabel）
         containLabel: true,
       },
@@ -97,11 +98,13 @@ export default function StatsPage() {
   const subjectOption = useMemo(
     () => ({
       tooltip: { trigger: 'item' as const, formatter: '{b}：{c} 分钟（{d}%）' },
-      legend: { bottom: 0 },
+      legend: { bottom: 0, type: 'scroll' as const },
       series: [
         {
           type: 'pie' as const,
-          radius: ['42%', '68%'],
+          // 饼图上移一点，给底部图例让位
+          center: ['50%', '44%'],
+          radius: ['36%', '60%'],
           avoidLabelOverlap: true,
           label: { formatter: '{b}' },
           data: subjectItems.map((item) => ({ name: item.subject, value: item.minutes })),
