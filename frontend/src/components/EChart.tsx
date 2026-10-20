@@ -2,17 +2,20 @@ import { BarChart, LineChart, PieChart } from 'echarts/charts'
 import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components'
 import * as echarts from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
+import { LegacyGridContainLabel } from 'echarts/features'
 import type { EChartsOption, EChartsType } from 'echarts'
 import { useEffect, useRef } from 'react'
 
 /**
  * ECharts 轻封装（M6 统计页用）。
  *
- * 两个刻意的选择：
+ * 三个刻意的选择：
  * 1. **按需注册**（只用柱/折线/饼 + 提示/图例/网格）而不是 `import * as echarts from 'echarts'`：
  *    全量包会往懒加载 chunk 里塞 1.1 MB，按需后不到三分之一
  * 2. 自己写这 20 行，不引 `echarts-for-react`：只需要
  *    「挂载 → setOption → 跟随容器 resize → 卸载销毁」这一条路径
+ * 3. 注册 `LegacyGridContainLabel`，让 `grid.containLabel: true` 恢复老版本的
+ *    「自动为坐标轴标签/名称留白」行为（ECharts 6 默认关掉了，否则标签会被裁切）
  */
 echarts.use([
   BarChart,
@@ -22,6 +25,7 @@ echarts.use([
   LegendComponent,
   TooltipComponent,
   CanvasRenderer,
+  LegacyGridContainLabel,
 ])
 
 export default function EChart({

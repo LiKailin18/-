@@ -45,7 +45,7 @@ export default function AiPage() {
     : 0
 
   return (
-    <Flex vertical gap={16}>
+    <Flex vertical gap={16} style={{ maxWidth: 1280, margin: '0 auto', width: '100%' }}>
       <Flex justify="space-between" align="flex-end" wrap gap={12}>
         <div>
           <Title level={3} style={{ marginBottom: 4 }}>

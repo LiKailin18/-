@@ -79,8 +79,7 @@ export default function AdminAiUsagePage() {
         right: 8,
         bottom: 8,
         top: 40,
-        outerBoundsMode: 'same' as const,
-        outerBoundsContain: 'axisLabel' as const,
+        containLabel: true,
       },
       xAxis: {
         type: 'category' as const,

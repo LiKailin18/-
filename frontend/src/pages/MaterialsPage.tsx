@@ -327,7 +327,7 @@ export default function MaterialsPage() {
   ]
 
   return (
-    <Flex vertical gap={16}>
+    <Flex vertical gap={16} style={{ maxWidth: 1280, margin: '0 auto', width: '100%' }}>
       <div>
         <Title level={3} style={{ marginBottom: 4 }}>
           学习资料

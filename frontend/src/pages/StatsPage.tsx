@@ -61,9 +61,8 @@ export default function StatsPage() {
         right: 8,
         bottom: 8,
         top: 40,
-        // ECharts 6：containLabel 已废弃，等价写法是下面这两个
-        outerBoundsMode: 'same' as const,
-        outerBoundsContain: 'axisLabel' as const,
+        // 自动为坐标轴标签/名称留白（已注册 LegacyGridContainLabel）
+        containLabel: true,
       },
       xAxis: {
         type: 'category' as const,
@@ -127,8 +126,7 @@ export default function StatsPage() {
         right: 8,
         bottom: 8,
         top: 30,
-        outerBoundsMode: 'same' as const,
-        outerBoundsContain: 'axisLabel' as const,
+        containLabel: true,
       },
       xAxis: {
         type: 'category' as const,
