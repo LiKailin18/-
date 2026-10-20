@@ -53,8 +53,13 @@ export default function EChart({
   }, [])
 
   useEffect(() => {
+    const chart = chartRef.current
+    if (!chart) return
     // notMerge=true：切换时间范围时旧 series 不残留
-    chartRef.current?.setOption(option, true)
+    chart.setOption(option, true)
+    // Flex/Grid 布局里容器尺寸可能异步确定，setOption 后补一次 resize，
+    // 否则 canvas 会停在错误尺寸/偏移（大屏下表现成「浮动」）
+    requestAnimationFrame(() => chart.resize())
   }, [option])
 
   return <div ref={containerRef} style={{ width: '100%', height }} />

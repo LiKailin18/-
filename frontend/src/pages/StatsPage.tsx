@@ -104,7 +104,7 @@ export default function StatsPage() {
           type: 'pie' as const,
           radius: ['42%', '68%'],
           avoidLabelOverlap: true,
-          label: { formatter: '{b}\n{c} 分钟' },
+          label: { formatter: '{b}' },
           data: subjectItems.map((item) => ({ name: item.subject, value: item.minutes })),
         },
       ],
@@ -178,7 +178,7 @@ export default function StatsPage() {
   ]
 
   return (
-    <Flex vertical gap={16}>
+    <Flex vertical gap={16} style={{ maxWidth: 1280, margin: '0 auto', width: '100%' }}>
       <Flex justify="space-between" align="flex-end" wrap gap={12}>
         <div>
           <Title level={3} style={{ marginBottom: 4 }}>
@@ -241,13 +241,16 @@ export default function StatsPage() {
         )}
       </Card>
 
-      <Row gutter={[12, 12]}>
+      <Row gutter={[12, 12]} align="stretch">
         <Col xs={24} lg={10}>
           <Card title="科目分布" size="small" loading={loadingSubjects} style={{ height: '100%' }}>
             {subjectItems.length ? (
               <EChart option={subjectOption} height={300} />
             ) : (
-              <Empty description="还没有带科目的学习记录（任务所属计划里填了「科目」就会归到对应科目）" />
+              <Empty
+                style={{ minHeight: 300, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+                description="还没有带科目的学习记录（任务所属计划里填了「科目」就会归到对应科目）"
+              />
             )}
           </Card>
         </Col>
@@ -263,7 +266,10 @@ export default function StatsPage() {
             {hasAnyQuiz ? (
               <EChart option={accuracyOption} height={300} />
             ) : (
-              <Empty description="还没有答卷记录（去 AI 助手 → 测试题做一套）" />
+              <Empty
+                style={{ minHeight: 300, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+                description="还没有答卷记录（去 AI 助手 → 测试题做一套）"
+              />
             )}
           </Card>
         </Col>
