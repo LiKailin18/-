@@ -1,4 +1,4 @@
-import { DeleteOutlined, PlusOutlined, SendOutlined, StopOutlined, ThunderboltOutlined } from '@ant-design/icons'
+import { DeleteOutlined, PlusOutlined, SendOutlined, StopOutlined } from '@ant-design/icons'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   App as AntdApp,
@@ -11,7 +11,6 @@ import {
   Popconfirm,
   Select,
   Space,
-  Tag,
   Typography,
 } from 'antd'
 import dayjs from 'dayjs'
@@ -34,29 +33,15 @@ interface DisplayMessage {
   key: string
   role: 'user' | 'assistant'
   content: string
-  tools: string[]
-  meta?: string
 }
 
 function Bubble({ item }: { item: DisplayMessage }) {
   const isUser = item.role === 'user'
   return (
     <Flex vertical align={isUser ? 'flex-end' : 'flex-start'} gap={4} style={{ maxWidth: '100%' }}>
-      <Space size={6} wrap>
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          {isUser ? '我' : 'AI 助手'}
-        </Text>
-        {item.tools.map((name) => (
-          <Tag key={name} color="blue" icon={<ThunderboltOutlined />} style={{ marginInlineEnd: 0 }}>
-            {name}
-          </Tag>
-        ))}
-        {item.meta && (
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            {item.meta}
-          </Text>
-        )}
-      </Space>
+      <Text type="secondary" style={{ fontSize: 12 }}>
+        {isUser ? '我' : 'AI 助手'}
+      </Text>
       <div
         style={{
           maxWidth: '85%',
@@ -86,7 +71,6 @@ export default function ChatTab() {
   const [streaming, setStreaming] = useState(false)
   const [pendingUser, setPendingUser] = useState('')
   const [answer, setAnswer] = useState('')
-  const [toolName, setToolName] = useState<string | null>(null)
   const [createOpen, setCreateOpen] = useState(false)
   const [newMaterial, setNewMaterial] = useState<string | undefined>()
   const abortRef = useRef<AbortController | null>(null)
@@ -111,24 +95,12 @@ export default function ChatTab() {
     key: item.id,
     role: item.role,
     content: item.content,
-    tools: (item.tool_calls ?? []).map((call) => call.name),
-    meta:
-      item.role === 'assistant' && item.prompt_tokens + item.completion_tokens > 0
-        ? `${item.prompt_tokens + item.completion_tokens} tokens${
-            item.latency_ms ? ` · ${(item.latency_ms / 1000).toFixed(1)}s` : ''
-          }`
-        : undefined,
   }))
   if (pendingUser) {
-    timeline.push({ key: 'pending-user', role: 'user', content: pendingUser, tools: [] })
+    timeline.push({ key: 'pending-user', role: 'user', content: pendingUser })
   }
   if (streaming) {
-    timeline.push({
-      key: 'pending-answer',
-      role: 'assistant',
-      content: answer,
-      tools: toolName ? [toolName] : [],
-    })
+    timeline.push({ key: 'pending-answer', role: 'assistant', content: answer })
   }
 
   const scrollRef = useRef<HTMLDivElement | null>(null)
@@ -173,7 +145,6 @@ export default function ChatTab() {
     setInput('')
     setPendingUser(text)
     setAnswer('')
-    setToolName(null)
     setStreaming(true)
 
     const controller = new AbortController()
@@ -184,7 +155,6 @@ export default function ChatTab() {
         sessionId,
         text,
         {
-          onTool: (data) => setToolName(data.name),
           onDelta: (chunk) => setAnswer((prev) => prev + chunk),
           onError: (data) => message.error(`${data.code}：${data.message}`),
         },
@@ -197,7 +167,6 @@ export default function ChatTab() {
       setStreaming(false)
       setPendingUser('')
       setAnswer('')
-      setToolName(null)
       await refresh()
     }
   }
