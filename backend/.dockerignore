@@ -1,0 +1,11 @@
+# 构建期与运行期都要忽略的文件
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.env
+storage/
+tests/

@@ -602,7 +602,7 @@ git reset --hard / git clean -fd / git push --force
 | M5 | AI 层：能力探针 → qa / summary / quiz / advice + 用量配额 | ✅ **已完成** —— 169 个后端用例；探针 3/3 PASS；真实模型跑通总结/出题/判分/建议/问答（含工具调用与 SSE 流式）；前端 `/ai` 四个 Tab 浏览器实测通过 |
 | M6 | 推荐 + 统计图表 + 全局异常 | ✅ **已完成** —— 185 个后端用例；§12 契约补齐（含功能 10 推荐）；`/stats` 四个统计接口 + `/recommendations` 规则推荐；前端统计页（ECharts）与工作台改造；浏览器实测通过 |
 | M6b | **功能 13** 管理员端 5 个子模块 + `/admin` 前端 | ✅ **已完成** —— 2 张新表（`app_setting` / `admin_audit_log`）+ 迁移 `0006_admin`；13.1 仪表盘 / 13.2 用户 / 13.3 内容 / 13.4 AI 用量 / 13.5 配置与审计全部落地；227 个后端用例；前端 `/admin` 独立布局 + `RequireRole` 守卫 |
-| M7 | 测试、Docker 部署、截图、论文材料 | 未开始 |
+| M7 | 测试、Docker 部署、截图、论文材料 | ✅ **已完成** —— 227 用例 + 82% 覆盖率；Docker 一键部署（PG + 后端 + 前端 nginx）实机验证；`docs/论文材料.md`（架构/E-R/时序图）；截图脚本 `scripts/screenshots.mjs`（需桌面执行） |
 
 > 每完成一个里程碑，在此表更新状态，并在 `docs/dev-notes.md` 记录实际耗时与踩坑。
 

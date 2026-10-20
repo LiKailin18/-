@@ -153,6 +153,34 @@ cd backend
 
 ---
 
+## 一键部署（Docker Compose，M7）
+
+把 PostgreSQL + 后端 + 前端（nginx 反代）打包成一键起：
+
+```bash
+# 1) 准备敏感配置（不入库）
+copy deploy\.env.example deploy\.env
+#    编辑 deploy\.env：填 LLM_API_KEY（不填也能起，只是 AI 接口 503）
+
+# 2) 构建并启动全套
+docker compose -f deploy/docker-compose.yml up -d --build
+
+# 3) 访问
+#    前端  http://127.0.0.1:8080
+#    后端  http://127.0.0.1:8000/health  （应返回 {status:ok, db:ok}）
+```
+
+- 后端容器启动时自动 `alembic upgrade head`；上传文件用 `uploads` 卷持久化。
+- 创建第一个管理员（管理端不能给自己提权）：
+
+  ```bash
+  docker exec -it sls-backend python scripts/create_admin.py --username admin --email a@b.c --password xxx
+  ```
+
+> 本地开发仍用 `scripts\dev.ps1`（前后端热启动）；Docker 是**交付/演示**形态。
+
+---
+
 ## 测试
 
 ```bash
@@ -183,6 +211,7 @@ npm run build
 | [`docs/db.md`](docs/db.md) | 14 张表的字段/约束/索引、JSONB 结构、E-R 关系、统计 SQL |
 | [`docs/agent-tools.md`](docs/agent-tools.md) | Agent 工具签名、结构化输出模型、Prompt 契约、降级矩阵 |
 | [`docs/dev-notes.md`](docs/dev-notes.md) | 版本锁定、能力探针结果、踩坑记录、里程碑实际耗时 |
+| [`docs/论文材料.md`](docs/论文材料.md) | 论文素材：架构图、E-R 图、时序图（Mermaid）、测试统计、设计取舍 |
 
 > **约定：契约是代码的上游。** 改接口先改 `docs/api.md`，改表先改 `docs/db.md`，改 AI 能力先改 `docs/agent-tools.md`。
 
@@ -190,6 +219,9 @@ npm run build
 
 ## 开发进度
 
-当前阶段：**M6b 功能 13 管理员端 ✅ 已完成**（2 张新表 + 13.1–13.5 五个子模块 + `/admin` 前端，227 个用例）。
-下一步：**M7 测试、Docker 部署、截图与论文材料**。
-里程碑定义见 [`CLAUDE.md`](CLAUDE.md) §17；验收结果与踩坑见 [`docs/dev-notes.md`](docs/dev-notes.md) §3、§4–§11。
+当前阶段：**M7 测试 / Docker 部署 / 论文材料 ✅ 已完成** —— 全部 13 个功能 + 7 个里程碑完成，毕业设计系统交付。
+
+- 后端 227 用例全绿、覆盖率 82%；前端 `tsc` + `vite build` 通过。
+- Docker 一键部署实机验证（`docker compose -f deploy/docker-compose.yml up -d --build`）。
+- 论文材料见 [`docs/论文材料.md`](docs/论文材料.md)；验收与踩坑见 [`docs/dev-notes.md`](docs/dev-notes.md) §3、§4–§12。
+- 界面截图：`scripts/screenshots.mjs`（Playwright，需桌面环境跑一次）。

@@ -119,6 +119,8 @@
 | 2026-10-19 | 只读配置 `ai.model_name` 显示成种子值 `deepseek-chat`，而实际模型是 `qwen-plus` | `load_all` 把库里那行也当成覆盖值；但只读项本应以**部署配置**为准（库里只是历史记录） | `load_all` 跳过 `editable=false` 的键；`list_settings` 的 `value` 取实时配置 |
 | 2026-10-19 | 前端「AI 已暂停」分支怎么都不生效，改了三次代码都不出现 | 不是代码问题，是 **Vite 把 `AiPage.tsx?t=<旧时间戳>` 的转换结果缓存住了**（第三次踩同一个坑）。`fetch` 该 URL 返回的仍是旧代码，页面自然跑旧逻辑 | 全量重启 vite 后确认 **router 的转换产物里 import 不再带 `?t=`**（`fetch('/src/router/index.tsx', {cache:'reload'})` grep 一下），再开新标签页验证；别在带时间戳的旧 URL 上反复改代码 |
 | 2026-10-19 | 流式问答的 token 一直记成 0，管理端用量报表里 qa 场景明显偏低 | `ChatOpenAI` 默认不在流式响应里带 usage；`stream_text` 靠 `chunk.usage_metadata` 累加，于是全是 0 | `build_chat_model(..., stream_usage=True)`（OpenAI 兼容协议 `stream_options.include_usage`）。实测一次问答：817 + 47 = 864 tokens |
+| 2026-10-20 | Docker 构建后端 `pip install` 报 `THESE PACKAGES DO NOT MATCH THE HASHES`（干净的无 hash requirements 也报） | `python:3.12-slim` 自带的 pip 25.0.1 有哈希校验误报；本机 venv 用 26.2.1 无此问题 | Dockerfile 里先 `pip install --upgrade pip` 再装依赖。**镜像里的工具链版本也要跟本机对齐** |
+| 2026-10-20 | Docker Desktop 没在运行 → 后端测试 `ConnectionRefusedError`（连不上 5432） | 关闭 Docker Desktop 后，宿主机 5432 端口转发随之消失，即使容器数据还在 | 跑测试/起后端前先确认 Docker 引擎在线（`docker version`）；`setup-db.ps1` / `dev.ps1` 都能自检 |
 
 ---
 
@@ -383,7 +385,30 @@
 
 ---
 
-## 12. 待确认事项
+## 12. M7 验收结果（测试 / 部署 / 论文材料，2026-10-20 · 全部通过）
+
+| 验收项 | 结果 | 证据 |
+|---|---|---|
+| 后端测试 | ✅ | **227 个用例**全绿、`ruff` 零告警 |
+| 代码覆盖率 | ✅ | **82%**（3926 语句，HTML 报告 `backend/htmlcov/index.html`；AI 运行时/深 agent 分支因打桩而偏低，其余核心层 ≥ 70%） |
+| Docker 部署 | ✅ | 后端/前端 Dockerfile + nginx 反代 + compose 三服务（PG + backend + frontend）；**实际构建并起完整栈**：`/health` 200（直连与经 nginx 均 `{status:ok,db:ok}`），登录 + 管理端接口冒烟通过 |
+| 前端构建 | ✅ | `tsc --noEmit` + `vite build` 通过 |
+| 论文材料 | ✅ | `docs/论文材料.md`：系统架构图、E-R 图（14 表）、3 张时序图（登录/问答 SSE/管理员禁用）、测试统计表、10 条设计取舍，全部 Mermaid |
+| 界面截图 | ⚠️ 脚本就绪 | `scripts/screenshots.mjs`（Playwright 一键截 12 张）；本机 OpenCode 浏览器无可见桌面窗口，`screenshot` 工具报「needs a visible tab」，需在有桌面的机器上跑一次 |
+
+**M7 实际投入**
+
+| 环节 | 实际耗时 | 说明 |
+|---|---|---|
+| 覆盖率 + 测试收尾 | ~15 min | 227 用例 + 82% 覆盖 |
+| 论文材料文档 | ~40 min | Mermaid 图 + 测试表 + 取舍 |
+| Docker 部署（Dockerfile ×2 + nginx + compose） | ~60 min | 含「pip 25 哈希误报」与「Docker Desktop 掉线」两个坑 |
+| 截图脚本 | ~15 min | Playwright 脚本（本机无法截，留待桌面执行） |
+| **合计** | **约 2 小时** | |
+
+---
+
+## 13. 待确认事项
 
 | 项 | 状态 | 结论 |
 |---|---|---|
