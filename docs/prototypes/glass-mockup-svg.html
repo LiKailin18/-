@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>玻璃拟态效果图 · 可导出 PNG</title>
+<style>
+  html,body{margin:0;background:#0B0A1E;color:#E8E6FF;
+    font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+  .bar{position:sticky;top:0;z-index:9;display:flex;align-items:center;gap:14px;
+    padding:12px 20px;background:rgba(11,10,30,.86);backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(255,255,255,.08);font-size:13px}
+  .bar b{font-weight:600}
+  .bar span{color:rgba(232,230,255,.55)}
+  .bar button{margin-left:auto;border:0;border-radius:10px;padding:10px 18px;cursor:pointer;
+    font-family:inherit;font-size:13px;font-weight:600;color:#1A1440;
+    background:linear-gradient(135deg,#E9E5FF,#C7BEFF);
+    box-shadow:0 10px 24px -12px rgba(196,181,253,.9)}
+  .bar button:hover{filter:brightness(1.04)}
+  .wrap{padding:28px;display:grid;place-items:center}
+  svg{display:block;width:min(1600px,100%);height:auto;border-radius:24px;
+    box-shadow:0 50px 120px -40px rgba(0,0,0,.8)}
+</style>
+</head>
+<body>
+<div class="bar">
+  <b>玻璃拟态效果图</b>
+  <span>1600 × 1000 · 表面模糊 44px · 白色 10% 叠层 · 1px 高光边 · 边缘色散</span>
+  <button onclick="downloadPng()">下载 PNG</button>
+</div>
+<div class="wrap">
+<svg id="art" xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1B1740"/>
+      <stop offset="0.5" stop-color="#3B2A86"/>
+      <stop offset="1" stop-color="#241E5C"/>
+    </linearGradient>
+    <radialGradient id="shadeGrad" cx="0.3" cy="0.64" r="0.6">
+      <stop offset="0" stop-color="#0A0826" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#0A0826" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="sheenGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.16"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.62"/>
+      <stop offset="0.45" stop-color="#FFFFFF" stop-opacity="0.12"/>
+      <stop offset="1" stop-color="#C4B5FD" stop-opacity="0.48"/>
+    </linearGradient>
+    <linearGradient id="graText" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#C4B5FD"/>
+      <stop offset="0.55" stop-color="#E879F9"/>
+      <stop offset="1" stop-color="#93C5FD"/>
+    </linearGradient>
+    <linearGradient id="btnGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#EDE9FF"/>
+      <stop offset="1" stop-color="#C7BEFF"/>
+    </linearGradient>
+    <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#93C5FD"/>
+      <stop offset="0.48" stop-color="#C4B5FD"/>
+      <stop offset="1" stop-color="#F0ABFC"/>
+    </linearGradient>
+    <linearGradient id="markGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6366F1"/>
+      <stop offset="1" stop-color="#C084FC"/>
+    </linearGradient>
+    <linearGradient id="avatarGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#818CF8"/>
+      <stop offset="1" stop-color="#E879F9"/>
+    </linearGradient>
+
+    <filter id="blur120" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="120"/>
+    </filter>
+    <filter id="blurGlass" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="42"/>
+    </filter>
+
+    <clipPath id="panelClip">
+      <rect x="120" y="96" width="1360" height="808" rx="36"/>
+    </clipPath>
+    <clipPath id="focusClip">
+      <rect x="1014" y="236" width="420" height="430" rx="26"/>
+    </clipPath>
+
+    <!-- 背景美术：大块柔和自然形态 -->
+    <g id="bgArt">
+      <rect width="1600" height="1000" fill="url(#bgGrad)"/>
+      <ellipse cx="180" cy="760" rx="640" ry="340" fill="#5B54D6" opacity="0.55" filter="url(#blur120)"/>
+      <ellipse cx="1430" cy="120" rx="560" ry="320" fill="#8B5CF6" opacity="0.50" filter="url(#blur120)"/>
+      <ellipse cx="900" cy="1010" rx="720" ry="300" fill="#3B82F6" opacity="0.26" filter="url(#blur120)"/>
+      <ellipse cx="760" cy="430" rx="430" ry="230" fill="#E879F9" opacity="0.16" filter="url(#blur120)"/>
+      <rect width="1600" height="1000" fill="url(#shadeGrad)"/>
+    </g>
+  </defs>
+
+  <!-- 背景 -->
+  <use href="#bgArt"/>
+
+  <!-- 玻璃本体：背景复制 → 大半径模糊 → 10% 白叠层 -->
+  <g clip-path="url(#panelClip)">
+    <g filter="url(#blurGlass)"><use href="#bgArt"/></g>
+    <rect x="120" y="96" width="1360" height="808" fill="#FFFFFF" opacity="0.10"/>
+    <rect x="120" y="96" width="1360" height="380" fill="url(#sheenGrad)" opacity="0.55"/>
+  </g>
+  <!-- 1px 高光边 + 边缘色散（上亮下紫） -->
+  <rect x="120.7" y="96.7" width="1358.6" height="806.6" rx="35.3" fill="none"
+    stroke="url(#rim)" stroke-width="1.4"/>
+  <rect x="122.4" y="98.4" width="1355.2" height="803.2" rx="33.6" fill="none"
+    stroke="#FFFFFF" stroke-opacity="0.10" stroke-width="1"/>
+
+  <!-- ================= 内容 ================= -->
+  <g font-family="'PingFang SC','Microsoft YaHei',system-ui,sans-serif">
+    <!-- nav -->
+    <rect x="166" y="118" width="36" height="36" rx="12" fill="url(#markGrad)"/>
+    <text x="184" y="142" text-anchor="middle" font-size="15" font-weight="600" fill="#fff">学</text>
+    <text x="214" y="134" font-size="17" font-weight="600" fill="#fff" letter-spacing="0.3">靛光</text>
+    <text x="214" y="149" font-size="8.5" fill="#fff" fill-opacity="0.5" letter-spacing="2">STUDY</text>
+
+    <g font-size="13.5" fill="#fff" fill-opacity="0.62">
+      <text x="360" y="141">工作台</text>
+      <text x="436" y="141">学习资料</text>
+      <text x="524" y="141">在线笔记</text>
+      <text x="612" y="141">学习计划</text>
+      <text x="700" y="141">AI 助手</text>
+      <text x="780" y="141">学习统计</text>
+    </g>
+    <rect x="352" y="124" width="46" height="2" rx="1" fill="#fff" opacity="0.85"/>
+
+    <rect x="1246" y="118" width="104" height="36" rx="18" fill="#fff" fill-opacity="0.08"
+      stroke="#fff" stroke-opacity="0.22"/>
+    <circle cx="1268" cy="136" r="5" fill="none" stroke="#fff" stroke-opacity="0.6" stroke-width="1.6"/>
+    <path d="M1272 140l4 4" stroke="#fff" stroke-opacity="0.6" stroke-width="1.6" stroke-linecap="round"/>
+    <text x="1284" y="141" font-size="12.5" fill="#fff" fill-opacity="0.7">搜索</text>
+
+    <circle cx="1396" cy="136" r="18" fill="url(#avatarGrad)" stroke="#fff" stroke-opacity="0.35"/>
+    <text x="1396" y="141" text-anchor="middle" font-size="13" font-weight="600" fill="#fff">E</text>
+
+    <!-- eyebrow -->
+    <rect x="166" y="238" width="250" height="30" rx="15" fill="#fff" fill-opacity="0.10"
+      stroke="#fff" stroke-opacity="0.22"/>
+    <circle cx="186" cy="253" r="3" fill="#E879F9"/>
+    <text x="198" y="258" font-size="10.5" font-weight="600" fill="#E8E4FF" letter-spacing="2">2026 · 10 · 20 · 周二</text>
+
+    <!-- headline -->
+    <text x="166" y="342" font-size="64" font-weight="600" fill="#fff" letter-spacing="-1.6">
+      早上好，<tspan fill="url(#graText)">Echo</tspan>。
+    </text>
+    <text x="166" y="408" font-size="64" font-weight="600" fill="#fff" letter-spacing="-1.6">今天只做一件事。</text>
+
+    <!-- sub -->
+    <text x="166" y="452" font-size="15.5" fill="#fff" fill-opacity="0.62">
+      昨天你完成了第一章的测验，正确率 60%。今天适合先把那道错题补完，再开始新的章节。
+    </text>
+
+    <!-- CTA -->
+    <rect x="166" y="486" width="176" height="52" rx="14" fill="url(#btnGrad)"/>
+    <text x="204" y="518" font-size="14" font-weight="600" fill="#1A1440">开始专注</text>
+    <path d="M294 512h16M304 505l7 7-7 7" stroke="#1A1440" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+
+    <rect x="356" y="486" width="190" height="52" rx="14" fill="#fff" fill-opacity="0.09"
+      stroke="#fff" stroke-opacity="0.28"/>
+    <text x="394" y="518" font-size="14" font-weight="600" fill="#fff" fill-opacity="0.92">查看学习统计</text>
+
+    <!-- metrics -->
+    <g>
+      <rect x="166" y="568" width="256" height="92" rx="16" fill="#fff" fill-opacity="0.08"
+        stroke="#fff" stroke-opacity="0.2"/>
+      <text x="186" y="600" font-size="11" fill="#fff" fill-opacity="0.5" letter-spacing="0.8">近 7 天</text>
+      <text x="186" y="636" font-size="28" font-weight="600" fill="#fff">60<tspan font-size="11" fill="#fff" fill-opacity="0.5"> 分钟</tspan></text>
+
+      <rect x="434" y="568" width="256" height="92" rx="16" fill="#fff" fill-opacity="0.08"
+        stroke="#fff" stroke-opacity="0.2"/>
+      <text x="454" y="600" font-size="11" fill="#fff" fill-opacity="0.5" letter-spacing="0.8">任务完成率</text>
+      <text x="454" y="636" font-size="28" font-weight="600" fill="#fff">100<tspan font-size="11" fill="#fff" fill-opacity="0.5">%</tspan></text>
+
+      <rect x="702" y="568" width="256" height="92" rx="16" fill="#fff" fill-opacity="0.08"
+        stroke="#fff" stroke-opacity="0.2"/>
+      <text x="722" y="600" font-size="11" fill="#fff" fill-opacity="0.5" letter-spacing="0.8">答题正确率</text>
+      <text x="722" y="636" font-size="28" font-weight="600" fill="#fff">60<tspan font-size="11" fill="#fff" fill-opacity="0.5">%</tspan></text>
+    </g>
+
+    <!-- focus card -->
+    <g clip-path="url(#focusClip)">
+      <rect x="1014" y="236" width="420" height="430" fill="#FFFFFF" opacity="0.10"/>
+    </g>
+    <rect x="1014.6" y="236.6" width="418.8" height="428.8" rx="25.6" fill="none"
+      stroke="#FFFFFF" stroke-opacity="0.30" stroke-width="1.2"/>
+
+    <text x="1042" y="276" font-size="11.5" font-weight="600" fill="#fff" fill-opacity="0.55" letter-spacing="1.6">今日专注</text>
+    <text x="1406" y="276" text-anchor="end" font-size="11" fill="#fff" fill-opacity="0.42">目标 60 min</text>
+
+    <!-- ring -->
+    <circle cx="1108" cy="380" r="56" fill="none" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="10"/>
+    <circle cx="1108" cy="380" r="56" fill="none" stroke="url(#ringGrad)" stroke-width="10"
+      stroke-linecap="round" stroke-dasharray="351.9" stroke-dashoffset="105.6"
+      transform="rotate(-90 1108 380)"/>
+    <text x="1108" y="386" text-anchor="middle" font-size="32" font-weight="600" fill="#fff" letter-spacing="-0.5">70%</text>
+    <text x="1108" y="404" text-anchor="middle" font-size="10" fill="#fff" fill-opacity="0.5" letter-spacing="1.4">今日目标</text>
+
+    <text x="1198" y="368" font-size="13.5" fill="#fff" fill-opacity="0.66">已学 <tspan font-weight="600" fill="#fff">42 分钟</tspan></text>
+    <text x="1198" y="394" font-size="13.5" fill="#fff" fill-opacity="0.66">再 <tspan font-weight="600" fill="#fff">18 分钟</tspan> 完成目标</text>
+
+    <line x1="1042" y1="486" x2="1406" y2="486" stroke="#FFFFFF" stroke-opacity="0.14"/>
+    <text x="1042" y="518" font-size="12.5" fill="#fff" fill-opacity="0.6">连续学习</text>
+    <text x="1406" y="518" text-anchor="end" font-size="12.5" font-weight="600" fill="#fff">1 天</text>
+    <text x="1042" y="552" font-size="12.5" fill="#fff" fill-opacity="0.6">本周学习</text>
+    <text x="1406" y="552" text-anchor="end" font-size="12.5" font-weight="600" fill="#fff">60 分钟</text>
+
+    <!-- footer -->
+    <line x1="166" y1="836" x2="1434" y2="836" stroke="#FFFFFF" stroke-opacity="0.12"/>
+    <g font-size="11.5" fill="#fff" fill-opacity="0.45">
+      <text x="166" y="872">资料 <tspan fill="#fff" fill-opacity="0.8" font-weight="600">2</tspan> 份</text>
+      <text x="256" y="872">笔记 <tspan fill="#fff" fill-opacity="0.8" font-weight="600">2</tspan> 条</text>
+      <text x="346" y="872">AI 调用 <tspan fill="#fff" fill-opacity="0.8" font-weight="600">8</tspan> 次</text>
+    </g>
+    <text x="1434" y="872" text-anchor="end" font-size="10" letter-spacing="2.4" fill="#fff" fill-opacity="0.32">LIQUID GLASS · MOCKUP</text>
+  </g>
+</svg>
+</div>
+
+<script>
+  function downloadPng() {
+    const svg = document.getElementById('art');
+    const xml = new XMLSerializer().serializeToString(svg);
+    const svgBlob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1600;
+      canvas.height = 1000;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, 1600, 1000);
+      canvas.toBlob((blob) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'glass-mockup-1600x1000.png';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(a.href);
+      }, 'image/png');
+      URL.revokeObjectURL(url);
+    };
+    img.src = url;
+  }
+</script>
+</body>
+</html>

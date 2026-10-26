@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>原型 A · 纸与墨 — 智能学习系统</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" media="print" onload="this.media='all'"
+  href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap" />
+<style>
+  :root{
+    --paper:#F2ECE1; --paper-deep:#E9E1D2;
+    --ink:#191714; --ink-soft:#4B453B;
+    --rule:rgba(25,23,20,.16); --rule-strong:rgba(25,23,20,.36);
+    --oxblood:#7B2D26; --gold:#A8894F;
+    --serif:Fraunces,"Songti SC","Noto Serif SC",SimSun,Georgia,"Times New Roman",serif;
+    --sans:"Helvetica Neue","PingFang SC","Microsoft YaHei",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--paper)}
+  body{
+    margin:0;color:var(--ink);font-family:var(--sans);min-height:100vh;
+    background:
+      radial-gradient(1200px 600px at 88% -12%, rgba(168,137,79,.12), transparent 62%),
+      radial-gradient(900px 520px at -8% 112%, rgba(123,45,38,.07), transparent 60%),
+      var(--paper);
+    -webkit-font-smoothing:antialiased;
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.82' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.22'/%3E%3C/svg%3E");
+  }
+  .wrap{max-width:1240px;margin:0 auto;padding:0 44px 80px}
+
+  /* ---------- nav ---------- */
+  .top{display:flex;align-items:center;gap:36px;padding:26px 0 20px;border-bottom:1px solid var(--rule-strong)}
+  .brand{font-family:var(--serif);font-size:21px;letter-spacing:.02em;white-space:nowrap}
+  .brand b{font-weight:600}
+  .brand span{color:var(--oxblood);font-style:italic}
+  .nav{display:flex;gap:26px;margin-left:auto}
+  .nav a{
+    color:var(--ink-soft);text-decoration:none;font-size:11.5px;letter-spacing:.14em;
+    text-transform:uppercase;padding:4px 0;position:relative
+  }
+  .nav a.on{color:var(--ink)}
+  .nav a.on::after{content:"";position:absolute;left:0;right:0;bottom:-21px;height:2px;background:var(--oxblood)}
+  .me{display:flex;align-items:center;gap:9px;margin-left:8px;font-size:12px;color:var(--ink-soft)}
+  .me .dot{width:26px;height:26px;border-radius:50%;background:var(--oxblood);color:#F2ECE1;
+    display:grid;place-items:center;font-family:var(--serif);font-size:12px;font-style:italic}
+
+  /* ---------- hero ---------- */
+  .hero{display:grid;grid-template-columns:1fr 300px;gap:60px;padding:54px 0 34px;border-bottom:1px solid var(--rule)}
+  .eyebrow{font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:22px}
+  h1{font-family:var(--serif);font-weight:300;font-size:clamp(44px,6vw,76px);line-height:.98;margin:0;letter-spacing:-.015em}
+  h1 em{font-style:italic;color:var(--oxblood)}
+  .lede{font-family:var(--serif);font-size:17px;line-height:1.75;color:var(--ink-soft);max-width:46ch;margin:20px 0 0}
+  .issue{border-left:1px solid var(--rule-strong);padding-left:26px;display:flex;flex-direction:column;justify-content:flex-end;gap:14px}
+  .issue .no{font-family:var(--serif);font-size:13px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft)}
+  .issue .big{font-family:var(--serif);font-size:58px;line-height:1;font-weight:300}
+  .issue .cap{font-size:11.5px;line-height:1.6;color:var(--ink-soft)}
+
+  /* ---------- stats ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--rule)}
+  .stat{padding:28px 26px 26px 0;border-right:1px solid var(--rule)}
+  .stat:last-child{border-right:0}
+  .stat .k{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:14px}
+  .stat .v{font-family:var(--serif);font-size:46px;line-height:1;font-weight:300}
+  .stat .v small{font-size:13px;font-family:var(--sans);letter-spacing:.06em;color:var(--ink-soft);margin-left:6px}
+  .stat .d{font-size:11.5px;color:var(--ink-soft);margin-top:10px}
+  .stat .d i{font-style:normal;color:var(--oxblood)}
+
+  /* ---------- body grid ---------- */
+  .grid{display:grid;grid-template-columns:1.65fr 1fr;gap:0;border-bottom:1px solid var(--rule)}
+  .col{padding:40px 44px 46px 0}
+  .col + .col{border-left:1px solid var(--rule);padding-left:44px;padding-right:0}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+  .sec-head h2{font-family:var(--serif);font-weight:600;font-size:22px;margin:0;letter-spacing:-.01em}
+  .sec-head .note{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+
+  .tips{list-style:none;margin:22px 0 0;padding:0}
+  .tip{display:grid;grid-template-columns:38px 1fr auto;gap:18px;align-items:start;
+    padding:20px 0;border-top:1px solid var(--rule)}
+  .tip:first-child{border-top:0;padding-top:6px}
+  .tip .ix{font-family:var(--serif);font-style:italic;font-size:20px;color:var(--gold);padding-top:2px}
+  .tip h3{margin:0 0 7px;font-family:var(--serif);font-weight:600;font-size:17.5px;line-height:1.35}
+  .tip p{margin:0;font-size:12.5px;line-height:1.7;color:var(--ink-soft)}
+  .tip .tag{display:inline-block;font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--oxblood);border:1px solid rgba(123,45,38,.28);padding:3px 7px;margin-bottom:9px}
+  .tip .go{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);
+    text-decoration:none;border-bottom:1px solid var(--rule-strong);white-space:nowrap;padding-bottom:2px}
+  .tip .go:hover{color:var(--oxblood);border-color:var(--oxblood)}
+
+  table.tasks{width:100%;border-collapse:collapse;margin-top:16px;font-size:13px}
+  .tasks th{text-align:left;font-weight:400;font-size:10px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ink-soft);padding:0 0 9px;border-bottom:1px solid var(--rule-strong)}
+  .tasks td{padding:14px 0;border-bottom:1px solid var(--rule);vertical-align:middle}
+  .tasks td:last-child{text-align:right}
+  .tasks .t{font-family:var(--serif);font-size:15px}
+  .tasks .m{color:var(--ink-soft);font-size:11.5px}
+  .pill{display:inline-block;font-size:10px;letter-spacing:.1em;padding:3px 8px;border:1px solid var(--rule-strong);color:var(--ink-soft)}
+  .pill.done{color:#3E5C3A;border-color:rgba(62,92,58,.35)}
+
+  /* chart */
+  .chart{margin-top:8px}
+  .chart svg{width:100%;height:132px;display:block;overflow:visible}
+  .chart .axis{font-size:9.5px;letter-spacing:.08em;fill:var(--ink-soft);font-family:var(--sans)}
+  .chart-cap{display:flex;justify-content:space-between;font-size:10.5px;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--ink-soft);margin-top:8px;padding-top:9px;border-top:1px solid var(--rule)}
+
+  /* AI block */
+  .ai{border:1px solid var(--rule-strong);padding:26px 26px 22px;background:rgba(255,255,255,.22);position:relative}
+  .ai::before{content:"AI";position:absolute;top:-9px;left:22px;background:var(--paper);padding:0 7px;
+    font-size:9.5px;letter-spacing:.22em;color:var(--oxblood)}
+  .ai .q{font-family:var(--serif);font-size:16px;line-height:1.7;margin:0}
+  .ai .q::first-letter{font-family:var(--serif);font-size:44px;float:left;line-height:.82;
+    padding:6px 8px 0 0;color:var(--oxblood)}
+  .ai .ask{display:flex;gap:8px;margin-top:18px}
+  .ai input{flex:1;border:0;border-bottom:1px solid var(--rule-strong);background:transparent;
+    padding:9px 2px;font-family:var(--sans);font-size:12.5px;color:var(--ink);outline:none}
+  .ai input::placeholder{color:rgba(75,69,59,.55)}
+  .ai button{border:1px solid var(--ink);background:var(--ink);color:var(--paper);padding:8px 16px;
+    font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer}
+  .ai button:hover{background:var(--oxblood);border-color:var(--oxblood)}
+
+  .weak{margin-top:26px}
+  .weak .row{display:grid;grid-template-columns:1fr 52px;gap:10px;align-items:center;padding:11px 0;border-top:1px solid var(--rule)}
+  .weak .nm{font-size:12.5px}
+  .weak .bar{height:4px;background:rgba(25,23,20,.1);position:relative}
+  .weak .bar i{position:absolute;inset:0 auto 0 0;background:var(--oxblood)}
+  .weak .pc{font-family:var(--serif);font-size:14px;text-align:right}
+
+  footer{display:flex;justify-content:space-between;gap:20px;padding-top:22px;
+    font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft)}
+
+  /* motion */
+  .reveal{opacity:0;transform:translateY(14px);animation:up .8s cubic-bezier(.2,.7,.2,1) forwards}
+  @keyframes up{to{opacity:1;transform:none}}
+  .d1{animation-delay:.05s}.d2{animation-delay:.14s}.d3{animation-delay:.23s}.d4{animation-delay:.32s}.d5{animation-delay:.41s}
+
+  @media (max-width:900px){
+    .wrap{padding:0 22px 60px}
+    .hero{grid-template-columns:1fr;gap:30px}
+    .issue{border-left:0;border-top:1px solid var(--rule);padding:22px 0 0}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .stat:nth-child(2){border-right:0}
+    .grid{grid-template-columns:1fr}
+    .col{padding:32px 0}
+    .col + .col{border-left:0;border-top:1px solid var(--rule);padding-left:0}
+    .nav{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top reveal d1">
+    <div class="brand"><b>研</b><span>·</span>STUDY</div>
+    <nav class="nav">
+      <a href="#" class="on">工作台</a>
+      <a href="#">学习资料</a>
+      <a href="#">在线笔记</a>
+      <a href="#">学习计划</a>
+      <a href="#">AI 助手</a>
+      <a href="#">学习统计</a>
+    </nav>
+    <div class="me"><span class="dot">E</span>Echo_lkl</div>
+  </header>
+
+  <section class="hero reveal d2">
+    <div>
+      <div class="eyebrow">Tuesday · 20 Oct 2026 · 第 07 期</div>
+      <h1>早上好，<em>Echo</em>。<br/>今天只做一件事。</h1>
+      <p class="lede">昨天你完成了第一章的测验，正确率 60%。今天适合先把那道错题补完，再开始新的章节。</p>
+    </div>
+    <aside class="issue">
+      <div class="no">Recent focus</div>
+      <div class="big">60<small style="font-size:14px;font-family:var(--sans)"> min</small></div>
+      <div class="cap">近 7 天学习总时长<br/>连续学习 1 天 · 任务完成率 100%</div>
+    </aside>
+  </section>
+
+  <section class="stats reveal d3">
+    <div class="stat">
+      <div class="k">近 7 天学习</div>
+      <div class="v">60<small>分钟</small></div>
+      <div class="d">日均 <i>8.6</i> 分钟</div>
+    </div>
+    <div class="stat">
+      <div class="k">任务完成率</div>
+      <div class="v">100<small>%</small></div>
+      <div class="d">1 / 1 已完成</div>
+    </div>
+    <div class="stat">
+      <div class="k">连续学习</div>
+      <div class="v">1<small>天</small></div>
+      <div class="d">保持住，别断</div>
+    </div>
+    <div class="stat">
+      <div class="k">答题正确率</div>
+      <div class="v">60<small>%</small></div>
+      <div class="d">最近 1 次测验</div>
+    </div>
+  </section>
+
+  <section class="grid reveal d4">
+    <div class="col">
+      <div class="sec-head">
+        <h2>今天做什么</h2>
+        <span class="note">规则计算 · 不耗配额</span>
+      </div>
+      <ol class="tips">
+        <li class="tip">
+          <span class="ix">01</span>
+          <div>
+            <span class="tag">Plan</span>
+            <h3>推进计划「M4 E2E plan」</h3>
+            <p>计划还剩 5 天，任务完成率 20%（1/5）。先把今天的任务补上，节奏就不会断。</p>
+          </div>
+          <a class="go" href="#">去推进 →</a>
+        </li>
+        <li class="tip">
+          <span class="ix">02</span>
+          <div>
+            <span class="tag">Habit</span>
+            <h3>先来一个 25 分钟的番茄钟</h3>
+            <p>近 7 天只学了 50 分钟（目标 60 分钟/天）。把门槛降到 25 分钟，先开始。</p>
+          </div>
+          <a class="go" href="#">去记一次 →</a>
+        </li>
+        <li class="tip">
+          <span class="ix">03</span>
+          <div>
+            <span class="tag">Review</span>
+            <h3>复习「极限」（正确率 50%）</h3>
+            <p>近 30 天在「极限」上做了 2 题，只对 1 题；出处：《calculus》。</p>
+          </div>
+          <a class="go" href="#">打开资料 →</a>
+        </li>
+      </ol>
+
+      <div class="sec-head" style="margin-top:44px">
+        <h2>今日任务</h2>
+        <span class="note">2026-10-20</span>
+      </div>
+      <table class="tasks">
+        <thead><tr><th>任务</th><th>所属计划</th><th>时长</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td class="t">高数第三章 3.1</td><td class="m">M4 E2E plan</td><td class="m">60 分钟</td><td><span class="pill">待完成</span></td></tr>
+          <tr><td class="t">错题回顾 · 极限</td><td class="m">M4 E2E plan</td><td class="m">25 分钟</td><td><span class="pill done">已完成</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="col">
+      <div class="sec-head"><h2>AI 助手</h2><span class="note">只读 · 不跨账号</span></div>
+      <div class="ai" style="margin-top:18px">
+        <p class="q">「这份资料的核心概念是什么？我最近的学习情况有什么问题？」</p>
+        <div class="ask">
+          <input placeholder="问点什么…" />
+          <button>Send</button>
+        </div>
+      </div>
+
+      <div class="chart">
+        <div class="sec-head" style="margin:26px 0 2px"><h2 style="font-size:17px">近 7 天</h2><span class="note">分钟</span></div>
+        <svg viewBox="0 0 300 120" preserveAspectRatio="none" aria-hidden="true">
+          <line x1="0" y1="100" x2="300" y2="100" stroke="rgba(25,23,20,.3)" stroke-width="1"/>
+          <line x1="0" y1="66" x2="300" y2="66" stroke="rgba(25,23,20,.08)" stroke-width="1"/>
+          <line x1="0" y1="33" x2="300" y2="33" stroke="rgba(25,23,20,.08)" stroke-width="1"/>
+          <g fill="#7B2D26">
+            <rect x="6"   y="98" width="16" height="2"/>
+            <rect x="47"  y="98" width="16" height="2"/>
+            <rect x="88"  y="98" width="16" height="2"/>
+            <rect x="129" y="98" width="16" height="2"/>
+            <rect x="170" y="98" width="16" height="2"/>
+            <rect x="211" y="98" width="16" height="2"/>
+            <rect x="252" y="40" width="16" height="60"/>
+          </g>
+          <g class="axis">
+            <text x="6" y="116">14</text><text x="47" y="116">15</text><text x="88" y="116">16</text>
+            <text x="129" y="116">17</text><text x="170" y="116">18</text><text x="211" y="116">19</text>
+            <text x="252" y="116">20</text>
+          </g>
+        </svg>
+        <div class="chart-cap"><span>柱 · 学习分钟</span><span>峰值 60 min</span></div>
+      </div>
+
+      <div class="weak">
+        <div class="sec-head" style="margin:30px 0 0"><h2 style="font-size:17px">薄弱知识点</h2><span class="note">近 30 天</span></div>
+        <div class="row"><div><div class="nm">极限</div><div class="bar" style="margin-top:7px"><i style="width:50%"></i></div></div><div class="pc">50%</div></div>
+        <div class="row"><div><div class="nm">导数</div><div class="bar" style="margin-top:7px"><i style="width:33%"></i></div></div><div class="pc">33%</div></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="reveal d5">
+    <span>Smart Learning · Prototype A — Paper &amp; Ink</span>
+    <span>数据由学习记录聚合 · 2026-10-20</span>
+  </footer>
+</div>
+</body>
+</html>

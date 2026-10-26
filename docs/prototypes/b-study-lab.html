@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>原型 B · STUDY//LAB — 智能学习系统</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" media="print" onload="this.media='all'"
+  href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=JetBrains+Mono:wght@400;600&display=swap" />
+<style>
+  :root{
+    --bg:#0A0A0B; --panel:#121214; --panel-2:#18181B;
+    --line:#2A2A2F; --line-soft:#1E1E22;
+    --ink:#F2F2EF; --ink-dim:#8B8B90;
+    --acid:#D8FF3E; --blue:#5B8CFF; --red:#FF5C5C;
+    --display:"Archivo Black","Arial Black","Microsoft YaHei",sans-serif;
+    --mono:"JetBrains Mono",Consolas,"Courier New",monospace;
+    --sans:"Helvetica Neue","PingFang SC","Microsoft YaHei",Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--bg)}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);min-height:100vh;
+    background-image:
+      linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+    background-size:48px 48px;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--acid);color:#000}
+  .wrap{max-width:1320px;margin:0 auto;padding:0 28px 70px}
+
+  /* status strip */
+  .strip{display:flex;align-items:center;gap:18px;font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.06em;color:var(--ink-dim);padding:12px 2px;border-bottom:1px solid var(--line)}
+  .strip .ok{color:var(--acid)}
+  .strip .blink{width:7px;height:7px;background:var(--acid);display:inline-block;margin-right:6px;
+    animation:blink 1.6s steps(2,start) infinite}
+  @keyframes blink{50%{opacity:.15}}
+  .strip .right{margin-left:auto;display:flex;gap:18px}
+
+  /* nav */
+  .nav{display:flex;align-items:stretch;border-bottom:1px solid var(--line)}
+  .brand{font-family:var(--display);font-size:19px;letter-spacing:-.01em;padding:20px 22px 20px 0;
+    display:flex;align-items:center;gap:6px}
+  .brand i{font-style:normal;color:var(--acid)}
+  .nav .links{display:flex;margin-left:auto}
+  .nav a{display:flex;align-items:center;padding:0 18px;color:var(--ink-dim);text-decoration:none;
+    font-family:var(--mono);font-size:11px;letter-spacing:.04em;border-left:1px solid var(--line-soft);transition:.15s}
+  .nav a:hover{color:var(--ink);background:var(--panel-2)}
+  .nav a.on{color:#000;background:var(--acid);font-weight:600}
+  .nav .user{display:flex;align-items:center;gap:8px;padding:0 0 0 18px;border-left:1px solid var(--line-soft);
+    font-family:var(--mono);font-size:11px;color:var(--ink-dim)}
+  .nav .user b{width:24px;height:24px;background:var(--ink);color:#000;display:grid;place-items:center;
+    font-size:11px;font-weight:600}
+
+  /* hero */
+  .hero{display:grid;grid-template-columns:1.5fr .9fr;gap:0;border-bottom:1px solid var(--line)}
+  .hero .l{padding:52px 40px 44px 0}
+  .kicker{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--acid);margin-bottom:18px}
+  .kicker::before{content:"// ";color:var(--ink-dim)}
+  h1{font-family:var(--display);font-size:clamp(38px,5.4vw,66px);line-height:.94;letter-spacing:-.02em;margin:0;
+    text-transform:uppercase}
+  h1 .outline{color:transparent;-webkit-text-stroke:1.4px var(--ink)}
+  h1 .acid{color:var(--acid)}
+  .lede{font-family:var(--mono);font-size:12px;line-height:1.85;color:var(--ink-dim);max-width:52ch;margin:22px 0 0}
+  .lede b{color:var(--ink);font-weight:600}
+
+  .hero .r{border-left:1px solid var(--line);padding:36px 0 36px 34px;position:relative;overflow:hidden}
+  .score{font-family:var(--display);font-size:112px;line-height:.82;letter-spacing:-.04em;position:relative;z-index:1}
+  .score small{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ink-dim);display:block;margin-top:12px}
+  .hero .r .slab{position:absolute;right:-40px;bottom:-26px;width:170px;height:90px;background:var(--acid);
+    transform:rotate(-8deg);z-index:0}
+  .hero .r .meta{position:relative;z-index:1;margin-top:26px;font-family:var(--mono);font-size:10.5px;
+    color:var(--ink-dim);line-height:2}
+  .hero .r .meta b{color:var(--acid)}
+
+  /* stat grid */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--line)}
+  .stat{padding:24px 22px 22px;border-right:1px solid var(--line);position:relative;transition:.15s}
+  .stat:last-child{border-right:0}
+  .stat:hover{background:var(--panel)}
+  .stat .k{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--ink-dim);margin-bottom:14px}
+  .stat .v{font-family:var(--display);font-size:42px;line-height:1;letter-spacing:-.02em}
+  .stat .v span{font-family:var(--mono);font-size:11px;color:var(--ink-dim);margin-left:5px}
+  .stat .d{font-family:var(--mono);font-size:10.5px;color:var(--ink-dim);margin-top:9px}
+  .stat .d em{font-style:normal;color:var(--acid)}
+
+  /* main */
+  .main{display:grid;grid-template-columns:1.55fr 1fr;border-bottom:1px solid var(--line)}
+  .main .l{padding:32px 40px 40px 0}
+  .main .r{border-left:1px solid var(--line);padding:32px 0 40px 32px}
+  .head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px}
+  .head h2{font-family:var(--display);font-size:16px;letter-spacing:.02em;margin:0;text-transform:uppercase}
+  .head .tag{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--ink-dim);
+    border:1px solid var(--line);padding:3px 7px}
+
+  .rows{border-top:1px solid var(--line)}
+  .row{display:grid;grid-template-columns:64px 1fr 116px;gap:18px;align-items:center;
+    padding:20px 10px 20px 0;border-bottom:1px solid var(--line);transition:.15s;cursor:pointer}
+  .row:hover{background:var(--panel);padding-left:10px}
+  .row .n{font-family:var(--display);font-size:30px;color:var(--line);letter-spacing:-.02em;transition:.15s}
+  .row:hover .n{color:var(--acid)}
+  .row h3{font-family:var(--sans);font-size:15px;font-weight:700;margin:0 0 6px;letter-spacing:.01em}
+  .row p{font-family:var(--mono);font-size:10.8px;line-height:1.75;color:var(--ink-dim);margin:0}
+  .row .kind{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.1em;
+    color:var(--blue);border:1px solid rgba(91,140,255,.4);padding:2px 6px;margin-bottom:8px}
+  .row .kind.review{color:var(--red);border-color:rgba(255,92,92,.4)}
+  .row .kind.habit{color:var(--acid);border-color:rgba(216,255,62,.4)}
+  .row .btn{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-decoration:none;
+    color:#000;background:var(--ink);padding:9px 10px;text-align:center;transition:.15s;white-space:nowrap}
+  .row:hover .btn{background:var(--acid)}
+
+  /* tasks */
+  .tasks{width:100%;border-collapse:collapse;margin-top:6px;font-family:var(--mono);font-size:11px}
+  .tasks th{text-align:left;font-weight:400;font-size:9.5px;letter-spacing:.08em;color:var(--ink-dim);
+    padding:0 0 8px;border-bottom:1px solid var(--line)}
+  .tasks td{padding:12px 0;border-bottom:1px solid var(--line-soft);color:var(--ink)}
+  .tasks td.dim{color:var(--ink-dim)}
+  .status{font-size:9px;letter-spacing:.08em;padding:3px 7px;border:1px solid var(--line)}
+  .status.done{color:var(--acid);border-color:rgba(216,255,62,.45)}
+
+  /* AI terminal */
+  .term{border:1px solid var(--line);background:var(--panel)}
+  .term .bar{display:flex;align-items:center;gap:6px;padding:9px 12px;border-bottom:1px solid var(--line);
+    font-family:var(--mono);font-size:10px;color:var(--ink-dim)}
+  .term .bar i{width:7px;height:7px;background:var(--line);border-radius:50%}
+  .term .bar i:first-child{background:var(--red)}
+  .term .bar span{margin-left:auto}
+  .term .body{padding:16px 14px}
+  .term .line{font-family:var(--mono);font-size:11px;line-height:1.9;color:var(--ink-dim)}
+  .term .line b{color:var(--acid);font-weight:400}
+  .term .line .cur{display:inline-block;width:7px;height:13px;background:var(--acid);vertical-align:-2px;
+    animation:blink 1s steps(2,start) infinite}
+  .term .prompt{display:flex;gap:8px;margin-top:12px}
+  .term input{flex:1;background:#0d0d0f;border:1px solid var(--line);color:var(--ink);
+    font-family:var(--mono);font-size:11px;padding:9px 10px;outline:none}
+  .term input:focus{border-color:var(--acid)}
+  .term button{background:var(--acid);color:#000;border:0;font-family:var(--mono);font-size:11px;font-weight:600;
+    padding:0 14px;cursor:pointer}
+  .term button:hover{background:var(--ink)}
+
+  /* chart */
+  .charthead{display:flex;justify-content:space-between;align-items:baseline;margin:30px 0 10px}
+  .charthead .lg{font-family:var(--mono);font-size:9.5px;color:var(--ink-dim);display:flex;gap:12px}
+  .charthead .lg b{display:inline-block;width:8px;height:8px;background:var(--acid);margin-right:4px}
+  svg.bars{width:100%;height:120px;display:block}
+  .bars text{font-family:var(--mono);font-size:8.5px;fill:var(--ink-dim)}
+  .bars .grid{stroke:var(--line-soft);stroke-width:1}
+  .bars .b{fill:var(--acid)}
+  .bars .b.zero{fill:var(--line)}
+  .bars .peak{fill:var(--blue)}
+
+  /* weak */
+  .weak{margin-top:26px}
+  .weak .wrow{display:grid;grid-template-columns:1fr 90px 46px;gap:10px;align-items:center;
+    padding:11px 0;border-top:1px solid var(--line-soft);font-family:var(--mono);font-size:11px}
+  .weak .track{height:6px;background:#1b1b1f;position:relative;border:1px solid var(--line-soft)}
+  .weak .track i{position:absolute;inset:0 auto 0 0;background:var(--red)}
+  .weak .pct{text-align:right;color:var(--ink-dim)}
+
+  .foot{display:flex;justify-content:space-between;gap:20px;padding-top:18px;
+    font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;color:var(--ink-dim)}
+
+  /* motion */
+  .rev{opacity:0;clip-path:inset(0 0 100% 0);animation:cut .7s cubic-bezier(.2,.8,.2,1) forwards}
+  @keyframes cut{to{opacity:1;clip-path:inset(0 0 0 0)}}
+  .r1{animation-delay:.04s}.r2{animation-delay:.12s}.r3{animation-delay:.2s}.r4{animation-delay:.28s}.r5{animation-delay:.36s}
+
+  @media (max-width:980px){
+    .hero,.main{grid-template-columns:1fr}
+    .hero .r,.main .r{border-left:0;border-top:1px solid var(--line);padding-left:0}
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .stat:nth-child(2){border-right:0}
+    .nav .links{display:none}
+    .row{grid-template-columns:52px 1fr;grid-auto-rows:auto}
+    .row .btn{grid-column:2;justify-self:start;margin-top:8px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="strip rev r1">
+    <span><span class="blink"></span>SYS.OK</span>
+    <span>DB:OK</span><span>AI:READY</span>
+    <span class="right"><span>UTC+08 09:41</span><span>SESSION/e2e…</span></span>
+  </div>
+
+  <header class="nav rev r1">
+    <div class="brand">STUDY<i>//</i>LAB</div>
+    <nav class="links">
+      <a href="#" class="on">工作台</a>
+      <a href="#">学习资料</a>
+      <a href="#">在线笔记</a>
+      <a href="#">学习计划</a>
+      <a href="#">AI 助手</a>
+      <a href="#">学习统计</a>
+    </nav>
+    <div class="user"><b>E</b>Echo_lkl</div>
+  </header>
+
+  <section class="hero rev r2">
+    <div class="l">
+      <div class="kicker">2026-10-20 · TUE · WEEK 43</div>
+      <h1><span class="acid">早上好</span>，<br/><span class="outline">Echo</span>。<br/>今天只做一件事。</h1>
+      <p class="lede">昨天你完成了第一章测验，正确率 <b>60%</b>。今天适合先把那道错题补完，再开始新的章节。<br/>
+      // 近 7 天 60 分钟 · 任务完成率 100% · 连续 1 天</p>
+    </div>
+    <div class="r">
+      <div class="slab"></div>
+      <div class="score">60<small>MIN / 7 DAYS</small></div>
+      <div class="meta">STREAK <b>1D</b><br/>TASK RATE <b>100%</b><br/>QUIZ ACC <b>60%</b></div>
+    </div>
+  </section>
+
+  <section class="stats rev r3">
+    <div class="stat"><div class="k">近 7 天学习</div><div class="v">60<span>分钟</span></div><div class="d">日均 <em>8.6</em> 分钟</div></div>
+    <div class="stat"><div class="k">任务完成率</div><div class="v">100<span>%</span></div><div class="d">1 / 1 已完成</div></div>
+    <div class="stat"><div class="k">连续学习</div><div class="v">1<span>天</span></div><div class="d">别断</div></div>
+    <div class="stat"><div class="k">答题正确率</div><div class="v">60<span>%</span></div><div class="d">最近 1 次</div></div>
+  </section>
+
+  <section class="main rev r4">
+    <div class="l">
+      <div class="head"><h2>今天做什么</h2><span class="tag">RULE ENGINE · NO QUOTA</span></div>
+      <div class="rows">
+        <div class="row">
+          <div class="n">01</div>
+          <div>
+            <span class="kind">PLAN</span>
+            <h3>推进计划「M4 E2E plan」</h3>
+            <p>计划还剩 5 天，任务完成率 20%（1/5）。先把今天的任务补上。</p>
+          </div>
+          <a class="btn" href="#">GO →</a>
+        </div>
+        <div class="row">
+          <div class="n">02</div>
+          <div>
+            <span class="kind habit">HABIT</span>
+            <h3>先来一个 25 分钟的番茄钟</h3>
+            <p>近 7 天只学了 50 分钟（目标 60 分钟/天）。把门槛降到 25 分钟。</p>
+          </div>
+          <a class="btn" href="#">GO →</a>
+        </div>
+        <div class="row">
+          <div class="n">03</div>
+          <div>
+            <span class="kind review">REVIEW</span>
+            <h3>复习「极限」（正确率 50%）</h3>
+            <p>近 30 天做了 2 题，只对 1 题；出处：《calculus》。</p>
+          </div>
+          <a class="btn" href="#">GO →</a>
+        </div>
+      </div>
+
+      <div class="head" style="margin-top:38px"><h2>今日任务</h2><span class="tag">2026-10-20</span></div>
+      <table class="tasks">
+        <thead><tr><th>TASK</th><th>PLAN</th><th>EST</th><th>STATE</th></tr></thead>
+        <tbody>
+          <tr><td>高数第三章 3.1</td><td class="dim">M4 E2E plan</td><td class="dim">60m</td><td><span class="status">PENDING</span></td></tr>
+          <tr><td>错题回顾 · 极限</td><td class="dim">M4 E2E plan</td><td class="dim">25m</td><td><span class="status done">DONE</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="r">
+      <div class="head"><h2>AI 助手</h2><span class="tag">READ-ONLY</span></div>
+      <div class="term">
+        <div class="bar"><i></i><i></i><i></i><span>agent://qa</span></div>
+        <div class="body">
+          <div class="line"><b>&gt;</b> 这份资料的核心概念是什么？</div>
+          <div class="line"><b>&lt;</b> 正在检索资料 <span style="color:var(--blue)">read_material_chunk</span>…</div>
+          <div class="line"><b>&lt;</b> 资料仅含两章标题，无实质定义。建议补充正文后重试。<span class="cur"></span></div>
+          <div class="prompt"><input placeholder="ask anything…" /><button>RUN</button></div>
+        </div>
+      </div>
+
+      <div class="charthead">
+        <h2 class="head" style="margin:0;font-size:13px">近 7 天</h2>
+        <div class="lg"><span><b></b>学习分钟</span></div>
+      </div>
+      <svg class="bars" viewBox="0 0 320 120" preserveAspectRatio="none">
+        <line class="grid" x1="0" y1="100" x2="320" y2="100"/>
+        <line class="grid" x1="0" y1="66" x2="320" y2="66"/>
+        <line class="grid" x1="0" y1="32" x2="320" y2="32"/>
+        <rect class="b zero" x="8"   y="98" width="22" height="2"/>
+        <rect class="b zero" x="53"  y="98" width="22" height="2"/>
+        <rect class="b zero" x="98"  y="98" width="22" height="2"/>
+        <rect class="b zero" x="143" y="98" width="22" height="2"/>
+        <rect class="b zero" x="188" y="98" width="22" height="2"/>
+        <rect class="b zero" x="233" y="98" width="22" height="2"/>
+        <rect class="b peak" x="278" y="40" width="22" height="60"/>
+        <text x="8" y="114">14</text><text x="53" y="114">15</text><text x="98" y="114">16</text>
+        <text x="143" y="114">17</text><text x="188" y="114">18</text><text x="233" y="114">19</text>
+        <text x="278" y="114">20</text>
+      </svg>
+
+      <div class="weak">
+        <div class="head" style="margin:22px 0 0"><h2 style="font-size:13px">薄弱知识点</h2><span class="tag">30D</span></div>
+        <div class="wrow"><span>极限</span><span class="track"><i style="width:50%"></i></span><span class="pct">50%</span></div>
+        <div class="wrow"><span>导数</span><span class="track"><i style="width:33%"></i></span><span class="pct">33%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="foot rev r5">
+    <span>SMART-LEARNING / PROTOTYPE B — STUDY//LAB</span>
+    <span>DATA AGGREGATED · 2026-10-20</span>
+  </div>
+</div>
+</body>
+</html>

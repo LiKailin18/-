@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>原型 C · 晨光 — 智能学习系统</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" media="print" onload="this.media='all'"
+  href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;800&display=swap" />
+<style>
+  :root{
+    --cream:#FBF7F0; --sage:#E7EEE4; --sage-deep:#D5E2D0;
+    --moss:#6F8F6A; --moss-soft:#9CB596;
+    --clay:#C27A5A; --clay-soft:#E7BBA6;
+    --ink:#2E2A26; --muted:#7D766C;
+    --card:rgba(255,255,255,.72);
+    --line:rgba(46,42,38,.10);
+    --shadow:0 18px 40px -18px rgba(70,60,45,.28);
+    --sans:"Nunito","PingFang SC","Microsoft YaHei","Avenir Next",sans-serif;
+    --brush:"KaiTi","STKaiti","Kaiti SC",serif;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--cream)}
+  body{
+    margin:0;font-family:var(--sans);color:var(--ink);min-height:100vh;font-weight:400;
+    background:
+      radial-gradient(900px 600px at 12% 0%, rgba(213,226,208,.9), transparent 62%),
+      radial-gradient(800px 520px at 92% 8%, rgba(231,187,166,.55), transparent 60%),
+      radial-gradient(700px 500px at 50% 108%, rgba(213,226,208,.7), transparent 60%),
+      var(--cream);
+    -webkit-font-smoothing:antialiased;
+  }
+  /* soft floating blobs */
+  .blob{position:fixed;border-radius:50%;filter:blur(60px);opacity:.5;pointer-events:none;z-index:0}
+  .blob.a{width:340px;height:340px;left:-90px;top:120px;background:#CFE0C8;animation:float 16s ease-in-out infinite}
+  .blob.b{width:280px;height:280px;right:-60px;top:40px;background:#F0CDBB;animation:float 20s ease-in-out infinite reverse}
+  @keyframes float{50%{transform:translate3d(20px,-24px,0) scale(1.06)}}
+
+  .wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:0 32px 72px}
+
+  /* header */
+  .top{display:flex;align-items:center;gap:24px;padding:26px 0 20px}
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .mark{width:34px;height:34px;border-radius:12px;background:linear-gradient(140deg,var(--moss),#A9C3A2);
+    display:grid;place-items:center;color:#fff;font-family:var(--brush);font-size:18px;box-shadow:0 8px 18px -8px rgba(111,143,106,.8)}
+  .brand b{font-size:17px;font-weight:800;letter-spacing:.01em}
+  .brand small{display:block;font-size:10px;color:var(--muted);letter-spacing:.18em;text-transform:uppercase;font-weight:600}
+  .nav{display:flex;gap:4px;margin-left:auto;background:rgba(255,255,255,.55);border:1px solid var(--line);
+    padding:4px;border-radius:999px;backdrop-filter:blur(8px)}
+  .nav a{font-size:12px;color:var(--muted);text-decoration:none;padding:8px 14px;border-radius:999px;transition:.18s;white-space:nowrap}
+  .nav a:hover{color:var(--ink);background:rgba(255,255,255,.8)}
+  .nav a.on{color:#fff;background:var(--moss);box-shadow:0 6px 14px -6px rgba(111,143,106,.9)}
+  .me{display:flex;align-items:center;gap:9px;padding-left:6px}
+  .me .av{width:34px;height:34px;border-radius:50%;background:var(--clay-soft);color:#6B3A25;
+    display:grid;place-items:center;font-weight:800;font-size:13px}
+  .me span{font-size:12px;font-weight:600;color:var(--ink)}
+
+  /* greeting */
+  .greet{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding:34px 4px 26px}
+  .greet h1{font-family:var(--brush);font-weight:400;font-size:clamp(40px,5vw,58px);line-height:1.06;margin:0;letter-spacing:.01em}
+  .greet h1 em{font-style:normal;color:var(--moss);position:relative}
+  .greet h1 em::after{content:"";position:absolute;left:0;right:0;bottom:4px;height:10px;
+    background:linear-gradient(90deg,rgba(156,181,150,.55),rgba(156,181,150,.1));border-radius:6px;z-index:-1}
+  .greet p{margin:10px 0 0;font-size:13.5px;color:var(--muted);max-width:48ch;line-height:1.8}
+  .date{text-align:right;font-size:11px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;font-weight:700}
+  .date b{display:block;font-size:30px;color:var(--ink);letter-spacing:0;line-height:1;margin-bottom:6px;font-weight:800}
+
+  /* bento */
+  .bento{display:grid;grid-template-columns:1.35fr 1fr 1fr;grid-auto-rows:minmax(0,auto);gap:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);
+    backdrop-filter:blur(10px);padding:22px 24px;min-width:0}
+  .card .lab{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:14px}
+
+  /* focus ring card */
+  .focus{grid-row:span 2;display:flex;flex-direction:column;justify-content:space-between;
+    background:linear-gradient(160deg,rgba(255,255,255,.88),rgba(231,238,228,.85))}
+  .ring{display:flex;align-items:center;gap:22px}
+  .ring svg{width:132px;height:132px;flex:none}
+  .ring .num{font-size:40px;font-weight:800;line-height:1;letter-spacing:-.02em}
+  .ring .num small{display:block;font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.08em;margin-top:8px}
+  .ring .sub{font-size:11.5px;color:var(--muted);line-height:1.9;margin-top:14px}
+  .ring .sub b{color:var(--ink)}
+  .tiny{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .chip{font-size:10.5px;font-weight:800;letter-spacing:.04em;color:var(--moss);
+    background:rgba(156,181,150,.18);border:1px solid rgba(111,143,106,.24);padding:5px 10px;border-radius:999px}
+
+  /* stat mini */
+  .stat{display:flex;flex-direction:column;gap:4px}
+  .stat .v{font-size:32px;font-weight:800;line-height:1;letter-spacing:-.02em}
+  .stat .v small{font-size:12px;font-weight:700;color:var(--muted);margin-left:4px}
+  .stat .d{font-size:11px;color:var(--muted);font-weight:600}
+  .stat .d i{font-style:normal;color:var(--clay)}
+
+  /* tips */
+  .tips{grid-column:span 2}
+  .tip{display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-top:1px solid var(--line)}
+  .tip:first-of-type{border-top:0;padding-top:0}
+  .tip .ico{width:36px;height:36px;border-radius:12px;flex:none;display:grid;place-items:center;
+    background:rgba(156,181,150,.2);color:var(--moss)}
+  .tip .ico.clay{background:rgba(194,122,90,.14);color:var(--clay)}
+  .tip .ico.alt{background:rgba(111,143,106,.14);color:var(--moss)}
+  .tip h3{margin:0 0 4px;font-size:14px;font-weight:800;letter-spacing:.01em}
+  .tip p{margin:0;font-size:11.5px;line-height:1.7;color:var(--muted)}
+  .tip .go{margin-left:auto;align-self:center;font-size:11px;font-weight:800;color:var(--moss);
+    text-decoration:none;background:rgba(156,181,150,.16);padding:7px 12px;border-radius:999px;white-space:nowrap}
+  .tip .go:hover{background:var(--moss);color:#fff}
+
+  /* tasks */
+  .tasks{display:flex;flex-direction:column;gap:2px}
+  .task{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
+  .task:first-child{border-top:0}
+  .task .ck{width:18px;height:18px;border-radius:6px;border:1.5px solid rgba(111,143,106,.4);flex:none}
+  .task .ck.done{background:var(--moss);border-color:var(--moss);position:relative}
+  .task .ck.done::after{content:"";position:absolute;left:5px;top:2px;width:5px;height:9px;
+    border:2px solid #fff;border-top:0;border-left:0;transform:rotate(42deg)}
+  .task .t{font-size:12.5px;font-weight:700}
+  .task .m{margin-left:auto;font-size:10.5px;color:var(--muted);font-weight:700;white-space:nowrap}
+
+  /* AI */
+  .ai{grid-column:span 2;background:linear-gradient(150deg,rgba(255,255,255,.9),rgba(250,238,231,.85));
+    position:relative;overflow:hidden}
+  .ai::before{content:"";position:absolute;width:200px;height:200px;border-radius:50%;right:-60px;top:-60px;
+    background:radial-gradient(circle,rgba(231,187,166,.6),transparent 70%)}
+  .ai .q{font-family:var(--brush);font-size:19px;line-height:1.6;margin:0 0 16px;color:var(--ink);position:relative}
+  .ai .ask{display:flex;gap:8px;position:relative}
+  .ai input{flex:1;border:1px solid var(--line);background:rgba(255,255,255,.9);border-radius:999px;
+    padding:11px 16px;font-family:var(--sans);font-size:12.5px;color:var(--ink);outline:none;transition:.18s}
+  .ai input:focus{border-color:var(--moss);box-shadow:0 0 0 4px rgba(156,181,150,.22)}
+  .ai button{border:0;background:var(--moss);color:#fff;border-radius:999px;padding:0 20px;
+    font-family:var(--sans);font-size:12px;font-weight:800;cursor:pointer;transition:.18s}
+  .ai button:hover{background:#5F7D5B}
+
+  /* chart */
+  .chartcard{display:flex;flex-direction:column;justify-content:space-between}
+  .chartcard svg{width:100%;height:110px;display:block;overflow:visible}
+  .chartcard .cap{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);font-weight:700;margin-top:8px}
+
+  /* weak */
+  .weak{grid-column:span 1}
+  .wrow{padding:10px 0;border-top:1px solid var(--line)}
+  .wrow:first-of-type{border-top:0;padding-top:0}
+  .wrow .top{display:flex;justify-content:space-between;font-size:11.5px;font-weight:800;margin-bottom:6px}
+  .wrow .pct{color:var(--clay)}
+  .track{height:7px;border-radius:999px;background:rgba(46,42,38,.07);overflow:hidden}
+  .track i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--clay-soft),var(--clay))}
+
+  .foot{display:flex;justify-content:space-between;gap:16px;padding-top:24px;font-size:10.5px;color:var(--muted);font-weight:700;letter-spacing:.08em}
+
+  /* motion */
+  .up{opacity:0;transform:translateY(16px);animation:rise .75s cubic-bezier(.2,.7,.2,1) forwards}
+  @keyframes rise{to{opacity:1;transform:none}}
+  .u1{animation-delay:.05s}.u2{animation-delay:.13s}.u3{animation-delay:.21s}.u4{animation-delay:.29s}.u5{animation-delay:.37s}
+
+  @media (max-width:1020px){
+    .bento{grid-template-columns:1fr 1fr}
+    .focus{grid-row:auto}
+    .tips,.ai{grid-column:span 2}
+    .nav{display:none}
+  }
+  @media (max-width:640px){
+    .wrap{padding:0 18px 56px}
+    .bento{grid-template-columns:1fr}
+    .tips,.ai{grid-column:span 1}
+    .greet{flex-direction:column;align-items:flex-start}
+    .date{text-align:left}
+  }
+</style>
+</head>
+<body>
+<div class="blob a"></div><div class="blob b"></div>
+<div class="wrap">
+  <header class="top up u1">
+    <div class="brand">
+      <div class="mark">晨</div>
+      <div><b>晨光 Morrow</b><small>Smart Learning</small></div>
+    </div>
+    <nav class="nav">
+      <a href="#" class="on">工作台</a>
+      <a href="#">学习资料</a>
+      <a href="#">在线笔记</a>
+      <a href="#">学习计划</a>
+      <a href="#">AI 助手</a>
+      <a href="#">学习统计</a>
+    </nav>
+    <div class="me"><span class="av">E</span><span>Echo_lkl</span></div>
+  </header>
+
+  <section class="greet up u2">
+    <div>
+      <h1>早上好，<em>Echo</em>。</h1>
+      <p>昨天你完成了第一章的测验，正确率 60%。今天适合先把那道错题补完，再开始新的章节。</p>
+    </div>
+    <div class="date"><b>20</b>周二 · 十月 · 2026</div>
+  </section>
+
+  <section class="bento up u3">
+    <!-- focus -->
+    <div class="card focus">
+      <div>
+        <div class="lab">今日专注</div>
+        <div class="ring">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#9CB596"/><stop offset="1" stop-color="#6F8F6A"/>
+              </linearGradient>
+            </defs>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="rgba(46,42,38,.08)" stroke-width="10"/>
+            <circle cx="60" cy="60" r="50" fill="none" stroke="url(#g1)" stroke-width="10"
+              stroke-linecap="round" stroke-dasharray="314" stroke-dashoffset="94"
+              transform="rotate(-90 60 60)"/>
+            <text x="60" y="58" text-anchor="middle" font-size="22" font-weight="800" fill="#2E2A26">70%</text>
+            <text x="60" y="74" text-anchor="middle" font-size="8.5" font-weight="700" fill="#7D766C" letter-spacing="1">TODAY</text>
+          </svg>
+          <div>
+            <div class="num">60<small>分钟 / 近 7 天</small></div>
+            <div class="sub">今日目标 <b>60 分钟</b><br/>已完成 <b>42 分钟</b></div>
+          </div>
+        </div>
+      </div>
+      <div class="tiny">
+        <span class="chip">连续 1 天</span>
+        <span class="chip">任务 100%</span>
+        <span class="chip">正确率 60%</span>
+      </div>
+    </div>
+
+    <!-- stat 1 -->
+    <div class="card stat">
+      <div class="lab">近 7 天学习</div>
+      <div class="v">60<small>分钟</small></div>
+      <div class="d">日均 <i>8.6 分钟</i></div>
+    </div>
+    <!-- stat 2 -->
+    <div class="card stat">
+      <div class="lab">任务完成率</div>
+      <div class="v">100<small>%</small></div>
+      <div class="d">1 / 1 已完成</div>
+    </div>
+
+    <!-- tips -->
+    <div class="card tips">
+      <div class="lab">今天做什么</div>
+      <div class="tip">
+        <div class="ico">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M8 7h7M8 11h5"/></svg>
+        </div>
+        <div>
+          <h3>推进计划「M4 E2E plan」</h3>
+          <p>计划还剩 5 天，任务完成率 20%（1/5）。先把今天的任务补上。</p>
+        </div>
+        <a class="go" href="#">去推进</a>
+      </div>
+      <div class="tip">
+        <div class="ico clay">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>
+        </div>
+        <div>
+          <h3>先来一个 25 分钟的番茄钟</h3>
+          <p>近 7 天只学了 50 分钟（目标 60 分钟/天）。把门槛降到 25 分钟。</p>
+        </div>
+        <a class="go" href="#">去记一次</a>
+      </div>
+      <div class="tip">
+        <div class="ico alt">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3l2.4 5.3 5.6.7-4.2 3.9 1.1 5.6L12 15.8 7.1 18.5l1.1-5.6L4 9l5.6-.7z"/></svg>
+        </div>
+        <div>
+          <h3>复习「极限」（正确率 50%）</h3>
+          <p>近 30 天做了 2 题，只对 1 题；出处：《calculus》。</p>
+        </div>
+        <a class="go" href="#">复习</a>
+      </div>
+    </div>
+
+    <!-- AI -->
+    <div class="card ai">
+      <div class="lab">AI 助手</div>
+      <p class="q">「这份资料的核心概念是什么？」<br/>「我最近的学习有什么问题？」</p>
+      <div class="ask">
+        <input placeholder="问点什么，比如：帮我复习极限…" />
+        <button>发送</button>
+      </div>
+    </div>
+
+    <!-- chart -->
+    <div class="card chartcard">
+      <div class="lab">近 7 天学习</div>
+      <svg viewBox="0 0 300 110" preserveAspectRatio="none" aria-hidden="true">
+        <defs>
+          <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="rgba(156,181,150,.55)"/>
+            <stop offset="1" stop-color="rgba(156,181,150,0)"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,96 L50,96 L100,96 L150,96 L200,96 L250,94 L300,26 L300,96 Z" fill="url(#area)"/>
+        <path d="M0,96 L50,96 L100,96 L150,96 L200,96 L250,94 L300,26" fill="none"
+          stroke="#6F8F6A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="300" cy="26" r="4" fill="#6F8F6A" stroke="#fff" stroke-width="2"/>
+      </svg>
+      <div class="cap"><span>10-14 → 10-20</span><span>峰值 60 分钟</span></div>
+    </div>
+
+    <!-- tasks -->
+    <div class="card">
+      <div class="lab">今日任务</div>
+      <div class="tasks">
+        <div class="task"><span class="ck"></span><span class="t">高数第三章 3.1</span><span class="m">60 分钟</span></div>
+        <div class="task"><span class="ck done"></span><span class="t">错题回顾 · 极限</span><span class="m">已完成</span></div>
+      </div>
+    </div>
+
+    <!-- weak -->
+    <div class="card weak">
+      <div class="lab">薄弱知识点</div>
+      <div class="wrow">
+        <div class="top"><span>极限</span><span class="pct">50%</span></div>
+        <div class="track"><i style="width:50%"></i></div>
+      </div>
+      <div class="wrow">
+        <div class="top"><span>导数</span><span class="pct">33%</span></div>
+        <div class="track"><i style="width:33%"></i></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot up u5">
+    <span>PROTOTYPE C — 晨光 / MORROW</span>
+    <span>数据由学习记录聚合 · 2026-10-20</span>
+  </footer>
+</div>
+</body>
+</html>
